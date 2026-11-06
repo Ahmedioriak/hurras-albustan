@@ -1,0 +1,19 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$room": {
+        ".read": "auth != null && $room.length <= 40 && $room.matches(/^[a-z0-9_-]+$/)",
+        "$peer": {
+          ".write": "auth != null && $peer.length <= 64 && $peer.beginsWith(auth.uid + '_')",
+          ".validate": "newData.hasChildren(['n', 'p', 't'])",
+          "n": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "p": { ".validate": "newData.isString() && newData.val().length <= 4096" },
+          "t": { ".validate": "newData.isNumber() && newData.val() <= now" },
+          "$other": { ".validate": false }
+        }
+      }
+    }
+  }
+}
