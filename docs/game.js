@@ -1565,6 +1565,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame()
 // buttons
 const on=(id,fn)=>$(id).addEventListener('click',()=>{AU.init();SFX.click();fn();});
 on('bPlay',()=>{openTeam();MUSIC.start('orchard');});
+on('bOnline1',()=>{SFX.click();openOnline();MUSIC.start('orchard');});
 on('bGuide',()=>{screen='guide';buildGuide('p');show('ovGuide');});
 on('bGuideBack',goTitle);
 on('tabP',()=>buildGuide('p'));on('tabS',()=>buildGuide('s'));
@@ -1605,7 +1606,7 @@ function nestIcon(c,x,y,s){c.save();c.translate(x,y);c.scale(s,s);
 async function netInit(){if(roomApi)return roomApi;
   if(!netTried){netTried=true;try{if(window.claude&&typeof window.claude.use==='function'){roomApi=await window.claude.use('room');try{userApi=await window.claude.use('user');}catch(e){userApi=null;}}}catch(e){roomApi=null;}}
   if(roomApi||window.claude)return roomApi;
-  try{const w=await fbConnect();roomApi=w.api;userApi=w.user;NET.err=null;}catch(e){console.warn('online',e);NET.err=e;roomApi=null;}
+  try{const w=FIREBASE_CONFIG?await fbConnect():await p2pConnect();roomApi=w.api;userApi=w.user;NET.err=null;}catch(e){console.warn('online',e);NET.err=e;roomApi=null;}
   return roomApi;}
 async function netNames(ids){const out={};ids=[...new Set(ids.filter(Boolean))];if(!userApi||!ids.length||typeof userApi.profiles!=='function')return out;
   try{const ps=await userApi.profiles(ids);for(const id of ids)out[id]=(ps&&ps[id]&&ps[id].name)||'';}catch(e){}return out;}
@@ -1640,7 +1641,7 @@ function onMenu(){netLeave();
   const go=()=>{const c=normCode($('joinCode').value);if(c.length===4)netJoin(c);else{SFX.deny();$('joinCode').focus();}};
   $('bJoin').onclick=go;$('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
   renderOpenList();}
-async function renderOpenList(){const el=$('openList');if(!el||!roomApi)return;let items=[];try{items=roomApi.peers().filter(p=>!p.isMe&&p.presence&&p.presence.open&&p.presence.open.v===NETV);}catch(e){}
+async function renderOpenList(){const el=$('openList');if(!el||!roomApi)return;if(roomApi.isP2P){el.innerHTML='<p class="rules small">اللي ينشئ الغرفة يختار فريقه ويرسل الكود، وصاحبه يكتب الكود وياخذ الفريق الثاني.</p>';return;}let items=[];try{items=roomApi.peers().filter(p=>!p.isMe&&p.presence&&p.presence.open&&p.presence.open.v===NETV);}catch(e){}
   if(!items.length){el.innerHTML='<p class="rules small">لا توجد مباريات مفتوحة الآن.</p>';return;}
   const names=await netNames(items.map(p=>p.by));if(!$('openList'))return;el.innerHTML='';
   for(const p of items){const o=p.presence.open,code=String(o.code||'').replace(/[^a-z0-9]/g,'').slice(0,6);if(!code)continue;const b=document.createElement('button');b.type='button';b.className='openitem';
@@ -1649,18 +1650,23 @@ function normCode(v){return String(v||'').replace(/[\u0660-\u0669]/g,d=>String(d
 async function netCreate(team){SFX.click();const taken=new Set();try{for(const p of roomApi.peers())if(p.presence&&p.presence.open)taken.add(String(p.presence.open.code));}catch(e){}
   let code='';for(let i=0;i<30;i++){code=String(1000+Math.floor(Math.random()*9000));if(!taken.has(code))break;}
   NET.team=team;NET.code=code;NET.phase='connecting';
-  try{NET.room=await roomApi.join('pvs-'+code);}catch(e){onError('ما قدرنا ننشئ الغرفة. حاول مرة ثانية.');return;}
+  onSet(`أنت ${team==='plants'?'فريق الخضروات':'فريق السلايم'}`,'ننشئ الغرفة...','<p class="rules">لحظات...</p>',[['إلغاء','ghost',onMenu]]);
+  for(let k=0;;k++){try{NET.room=await(roomApi.isP2P?roomApi.join('pvs-'+code,{host:true}):roomApi.join('pvs-'+code));break;}
+    catch(e){if(e&&e.code==='taken'&&k<4){code=String(1000+Math.floor(Math.random()*9000));NET.code=code;continue;}if(NET.phase==='connecting')onError('ما قدرنا ننشئ الغرفة. تأكد من الإنترنت وحاول مرة ثانية.');return;}}
+  if(NET.phase!=='connecting'||screen!=='online'){try{NET.room&&NET.room.leave();}catch(e){}NET.room=null;return;}
   NET.phase='waiting';NET.ready=false;NET.match=0;NET.lastM=0;
   NET.room.presence({v:NETV,team,ph:'setup',ready:false}).catch(()=>{});
   roomApi.presence({open:{v:NETV,code,team}}).catch(()=>{});
   NET.unsub.push(NET.room.onPeers(()=>netRoomChanged()));onWaiting();}
 function onWaiting(note){onSet(`أنت ${NET.team==='plants'?'فريق الخضروات':'فريق السلايم'}`,'ننتظر خصمك',
-  `<p class="rules">${note||'أرسل هذا الكود لصاحبك، أو خله يختار مباراتك من قائمة المباريات المفتوحة:'}</p><p class="bigcode" id="codeTxt">${NET.code}</p><button class="chip" id="bCopy" type="button">نسخ الكود</button>`,
+  `<p class="rules">${note||(roomApi&&roomApi.isP2P?'أرسل هذا الكود لصاحبك عشان يدخل مباراتك:':'أرسل هذا الكود لصاحبك، أو خله يختار مباراتك من قائمة المباريات المفتوحة:')}</p><p class="bigcode" id="codeTxt">${NET.code}</p><button class="chip" id="bCopy" type="button">نسخ الكود</button>`,
   [['إلغاء','ghost',onMenu]]);
   $('bCopy').onclick=()=>{try{navigator.clipboard.writeText(NET.code).then(()=>{$('bCopy').textContent='تم النسخ';},()=>selCode());}catch(e){selCode();}};}
 function selCode(){const r=document.createRange();r.selectNodeContents($('codeTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);}
 async function netJoin(code){SFX.click();netLeave();NET.code=code;NET.phase='connecting';
-  try{NET.room=await roomApi.join('pvs-'+code);}catch(e){onError('ما قدرنا ندخل الغرفة.');return;}
+  onSet('اللعب أونلاين',`الكود ${code}`,'<p class="rules">ندوّر على المباراة...</p>',[['إلغاء','ghost',onMenu]]);
+  try{NET.room=await roomApi.join('pvs-'+code);}catch(e){if(NET.phase==='connecting')onError(e&&e.code==='notfound'?'ما لقينا مباراة بهذا الكود. تأكد من الكود، أو اطلب من صاحبك ينشئ مباراة جديدة.':'ما قدرنا ندخل الغرفة. تأكد من الإنترنت وحاول مرة ثانية.');return;}
+  if(NET.phase!=='connecting'||screen!=='online'){try{NET.room.leave();}catch(e){}NET.room=null;return;}
   NET.phase='joining';NET.team=null;NET.ready=false;NET.match=0;NET.lastM=0;
   NET.unsub.push(NET.room.onPeers(()=>netRoomChanged()));
   onSet('اللعب أونلاين',`الكود ${code}`,'<p class="rules">نبحث عن صاحب المباراة...</p>',[['إلغاء','ghost',onMenu]]);
@@ -2075,6 +2081,74 @@ function fbErrorText(e){const c=(e&&e.code)||'';
   if(/permission/i.test(c))return'قواعد قاعدة البيانات رفضت الاتصال. لازم تنرفع القواعد الصحيحة في Firebase.';
   return'ما قدرنا نوصل لسيرفر اللعبة. حاول مرة ثانية بعد شوي.';}
 
+
+// ================= online without any setup: direct connection (WebRTC via PeerJS) =================
+// Used when no Firebase project is configured. The player who creates a match registers the id
+// "hurras-albustan-v4-<code>" on the free PeerJS server; the friend connects to that id with the 4-digit code.
+// After that the two browsers talk directly and send each other their presence objects.
+const PEERJS_URL='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+const P2P_PREFIX='hurras-albustan-v4-';
+let peerLoading=null;
+function p2pLoad(){if(window.Peer)return Promise.resolve(window.Peer);
+  if(!peerLoading){peerLoading=loadScript(PEERJS_URL).then(()=>{if(!window.Peer)throw Object.assign(new Error('peerjs'),{code:'sdk/load'});return window.Peer;});peerLoading.catch(()=>{peerLoading=null;});}
+  return peerLoading;}
+function p2pUid(){if(typeof save.uid!=='string'||!/^[a-z0-9]{6,40}$/i.test(save.uid)){save.uid='u'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);persist();}return save.uid;}
+async function p2pConnect(){const Peer=await p2pLoad();
+  const S={by:p2pUid(),names:new Map(),room:null};const freeze=o=>Object.freeze(o);
+  const lobby={pres:{},hs:new Set()};
+  const waitOpen=(peer,ms)=>new Promise((res,rej)=>{let done=false;const t=setTimeout(()=>{if(!done){done=true;rej({code:'timeout'});}},ms);
+    peer.on('open',()=>{if(!done){done=true;clearTimeout(t);res();}});
+    peer.on('error',e=>{if(!done){done=true;clearTimeout(t);rej({code:e&&e.type==='unavailable-id'?'taken':(e&&e.type)||'error',message:String(e&&e.message||e)});}});});
+  function mkRoom(name,peer,isHost,target){
+    const R={name,pres:{},other:null,conn:null,hs:new Set(),chs:new Set(),q:false,closed:false,
+      _list(){const me=freeze({peer:'me',by:S.by,name:playerName(),isMe:true,sameTab:true,kind:'player',guest:false,presence:freeze(JSON.parse(JSON.stringify(R.pres))),updatedAt:Date.now()});
+        return freeze(R.other?[me,R.other]:[me]);},
+      _fire(){if(R.q)return;R.q=true;setTimeout(()=>{R.q=false;const ps=R._list();for(const h of[...R.hs])try{h({peers:ps,joined:[],left:[],updated:ps});}catch(e){console.error(e);}},0);},
+      _conn(){const v=R.connected();for(const h of[...R.chs])try{h(v);}catch(e){}},
+      _send(){if(R.conn&&R.conn.open)try{R.conn.send(JSON.stringify({t:'p',by:S.by,n:playerName(),p:R.pres}));}catch(e){}},
+      _attach(conn){if(R.closed){try{conn.close();}catch(e){}return;}
+        if(R.conn&&R.conn!==conn&&R.conn.open){try{conn.close();}catch(e){}return;}
+        R.conn=conn;
+        conn.on('open',()=>{R._send();R._conn();});
+        conn.on('data',d=>{let m;try{m=typeof d==='string'?JSON.parse(d):d;}catch(e){return;}if(!m||m.t!=='p')return;
+          const by=String(m.by||'peer').slice(0,40),nm=String(m.n||'').slice(0,20);S.names.set(by,nm);
+          R.other=freeze({peer:String(conn.peer),by,name:nm,isMe:false,sameTab:false,kind:'player',guest:false,presence:freeze(m.p&&typeof m.p==='object'?m.p:{}),updatedAt:Date.now()});R._fire();});
+        conn.on('close',()=>{if(R.conn!==conn)return;R.conn=null;R.other=null;R._fire();R._conn();if(!isHost&&!R.closed)R._retry(0);});
+        conn.on('error',()=>{});
+        if(conn.open){R._send();R._conn();}},
+      _retry(n){if(R.closed||n>6)return;setTimeout(()=>{if(R.closed||(R.conn&&R.conn.open))return;try{if(peer.disconnected)peer.reconnect();R._attach(peer.connect(target,{reliable:true}));}catch(e){}R._retry(n+1);},2500);},
+      peers(){return R._list();},
+      presence(patch){for(const k in patch||{}){if(patch[k]===null||patch[k]===undefined)delete R.pres[k];else R.pres[k]=patch[k];}
+        const js=JSON.stringify(R.pres);if(js.length>4096)return Promise.reject({code:'invalid_argument',message:'presence too big '+js.length});
+        R._fire();R._send();return Promise.resolve();},
+      onPeers(h){R.hs.add(h);setTimeout(()=>{if(R.hs.has(h))h({peers:R._list(),joined:R._list(),left:[],updated:[]});},0);return()=>R.hs.delete(h);},
+      connected(){return!R.closed&&(isHost||!!(R.conn&&R.conn.open));},
+      onConnection(h){R.chs.add(h);setTimeout(()=>{if(R.chs.has(h))h(R.connected());},0);return()=>R.chs.delete(h);},
+      emit(){return Promise.resolve();},on(){return()=>{};},
+      leave(){R.closed=true;R.hs.clear();R.chs.clear();const c=R.conn;R.conn=null;
+        setTimeout(()=>{try{c&&c.close();}catch(e){}try{peer.destroy();}catch(e){}},300);if(S.room===R)S.room=null;return Promise.resolve();}};
+    if(isHost){peer.on('connection',c=>R._attach(c));peer.on('disconnected',()=>{if(!R.closed)setTimeout(()=>{try{if(!R.closed&&peer.disconnected)peer.reconnect();}catch(e){}},1500);});}
+    peer.on('error',()=>{});
+    return R;}
+  const api={isWs:true,isP2P:true,
+    async join(name,opt){if(S.room&&S.room.name===name)return S.room;if(S.room){try{await S.room.leave();}catch(e){}}
+      const code=String(name).replace(/^pvs-/,''),target=P2P_PREFIX+code;
+      if(opt&&opt.host){const peer=new Peer(target,{debug:0});await waitOpen(peer,15000).catch(e=>{try{peer.destroy();}catch(_){}throw e;});
+        return S.room=mkRoom(name,peer,true,target);}
+      const peer=new Peer(undefined,{debug:0});await waitOpen(peer,15000).catch(e=>{try{peer.destroy();}catch(_){}throw e;});
+      const R=mkRoom(name,peer,false,target);
+      await new Promise((res,rej)=>{let done=false;const fin=(ok,e)=>{if(done)return;done=true;clearTimeout(t);ok?res():rej(e);};
+        const t=setTimeout(()=>fin(false,{code:'notfound'}),12000);
+        peer.on('error',e=>{if(e&&e.type==='peer-unavailable')fin(false,{code:'notfound'});});
+        const c=peer.connect(target,{reliable:true});R._attach(c);c.on('open',()=>fin(true));}).catch(e=>{R.leave();throw e;});
+      return S.room=R;},
+    presence(patch){for(const k in patch||{}){if(patch[k]===null||patch[k]===undefined)delete lobby.pres[k];else lobby.pres[k]=patch[k];}return Promise.resolve();},
+    peers(){return freeze([freeze({peer:'me',by:S.by,name:playerName(),isMe:true,presence:freeze({...lobby.pres})})]);},
+    onPeers(h){lobby.hs.add(h);return()=>lobby.hs.delete(h);},
+    connected(){return true;},onConnection(h){setTimeout(()=>h(true),0);return()=>{};},emit(){return Promise.resolve();},on(){return()=>{};},
+    setName(n){save.pname=String(n||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,16);persist();if(S.room){S.room._send();S.room._fire();}}};
+  const user={profiles:async ids=>{const o={};for(const i of ids||[])o[i]={name:i===S.by?playerName():(S.names.get(i)||'')};return o;},id:async()=>S.by};
+  return{api,user};}
 
 // ================= team choice + slime team vs computer =================
 const AI_DIFF={

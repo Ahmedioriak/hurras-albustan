@@ -2,7 +2,7 @@
 
 لعبة دفاع عن البستان في المتصفح، بالعربي، كلها مرسومة بالكود (بدون صور خارجية). تختار فريقك: تزرع نباتات وتصد السلايم، أو تقود السلايم وتهاجم حديقة يدافع عنها الكمبيوتر أو صاحبك.
 
-**العب الآن:** https://GH_USER.github.io/hurras-albustan/
+**العب الآن:** https://ahmedioriak.github.io/hurras-albustan/
 
 ## الأطوار
 
@@ -17,25 +17,27 @@
 
 فيها 22 نبتة، و19 نوع سلايم، ودمج النباتات لمستوى 2 و3.
 
-## اللعب أونلاين
+## اللعب أونلاين 1 ضد 1
 
-1. "العب" ← "أونلاين".
-2. اكتب اسمك واختر فريقك، فيطلع لك كود من 4 أرقام.
-3. صاحبك يفتح نفس الرابط من أي جهاز، ويكتب الكود أو يختار مباراتك من القائمة.
-4. كل واحد يختار 8، ثم "جاهز".
+1. افتح اللعبة ← "أونلاين 1 ضد 1".
+2. اكتب اسمك، واختر فريقك (الخضروات أو السلايم)، فيطلع لك كود من 4 أرقام.
+3. صاحبك يفتح نفس الرابط من أي جهاز، ويضغط "أونلاين 1 ضد 1" ويكتب الكود، وياخذ الفريق الثاني.
+4. كل واحد يختار 8 (نباتات أو وحوش)، ثم "جاهز".
 
-## السيرفر: Firebase Realtime Database
+## كيف يشتغل الاتصال
 
-الأونلاين ما يحتاج سيرفر خاص. اللعبة تتصل بقاعدة بيانات Firebase مباشرة:
+**بدون أي إعداد (الوضع الافتراضي): اتصال مباشر بين الجهازين (WebRTC عن طريق PeerJS).**
+
+- اللي ينشئ الغرفة يسجّل المعرّف `hurras-albustan-v4-<الكود>` في سيرفر PeerJS المجاني، وصاحبه يتصل فيه بالكود.
+- بعدها الجهازين يتكلمون مباشرة. لاعب الخضروات هو اللي تشتغل عنده المباراة ويرسل حالتها 10 مرات في الثانية، ولاعب السلايم يرسل أوامر إنزال الوحوش.
+- ما فيه قائمة مباريات مفتوحة في هذا الوضع: الدخول بالكود بس.
+
+**مع Firebase (اختياري):** لو حطيت إعدادات مشروع Firebase في `FIREBASE_CONFIG`، اللعبة تستخدم Firebase Realtime Database بدل الاتصال المباشر، وتظهر قائمة المباريات المفتوحة:
 
 - كل لاعب يدخل بحساب مجهول (Anonymous Auth) تلقائياً.
-- كل لاعب يكتب عقدة وحدة في الغرفة: `rooms/<الغرفة>/<uid>_<tab>` = `{n: الاسم, p: الحالة (JSON), t: الوقت}`.
-- العقدة تنحذف تلقائياً لما اللاعب يقفل الصفحة (`onDisconnect`).
-- الغرف: `__lobby` للمباريات المفتوحة، و`pvs-<الكود>` لكل مباراة.
-- لاعب الخضروات هو اللي تشتغل عنده المباراة ويرسل حالتها 10 مرات في الثانية (أقل من 4KB)، ولاعب السلايم يرسل أوامر إنزال الوحوش.
+- كل لاعب يكتب عقدة وحدة في الغرفة: `rooms/<الغرفة>/<uid>_<tab>` = `{n: الاسم, p: الحالة (JSON), t: الوقت}`، وتنحذف تلقائياً لما يقفل الصفحة.
 - القواعد في `database.rules.json`: لازم تسجيل دخول، وكل لاعب يكتب في عقدته بس، وحد لحجم البيانات.
-
-الخطة المجانية (Spark) تتحمل 100 اتصال في نفس الوقت.
+- الخطة المجانية (Spark) تتحمل 100 اتصال في نفس الوقت.
 
 ### ربط مشروع Firebase جديد
 
@@ -44,7 +46,7 @@
 3. تبويب Rules ← الصق محتوى `database.rules.json` ← Publish.
 4. Build ← Authentication ← Get started ← فعّل Anonymous.
 5. Project settings ← Your apps ← Web (`</>`) ← انسخ `firebaseConfig`.
-6. حط القيم في `FIREBASE_CONFIG` في أول قسم الأونلاين داخل `docs/game.js`.
+6. حط القيم في `FIREBASE_CONFIG` في قسم "online server" داخل `docs/game.js` (أو عرّف `window.HURRAS_FIREBASE_CONFIG` قبل تحميل اللعبة).
 
 ## النشر
 
@@ -53,7 +55,7 @@
 
 ## تشغيل على جهازك
 
-افتح `docs/index.html` في المتصفح. للأونلاين الأفضل تشغيله من سيرفر محلي، مثلاً:
+افتح `docs/index.html` في المتصفح. أو شغّله من سيرفر محلي، مثلاً:
 
 ```bash
 npx serve docs
@@ -71,4 +73,4 @@ firebase.json          إعداد Firebase CLI (القواعد + الاستضا�
 
 ### English
 
-*Hurras Al-Bustan: Slime Invasion* is an Arabic lane-defense browser game. Play the plants (campaign, endless ascent, survival) or the slimes (against a computer gardener), locally 1v1 with game controllers, or online with a 4-digit room code. Online play uses Firebase Realtime Database with anonymous auth; each player writes only its own node in a room and the plants player runs the authoritative simulation. Rules are in `database.rules.json`; the game lives in `docs/` for GitHub Pages.
+*Hurras Al-Bustan: Slime Invasion* is an Arabic lane-defense browser game. Play the plants (campaign, endless ascent, survival) or the slimes (against a computer gardener), locally 1v1 with game controllers, or online 1v1 with a 4-digit room code. By default the two browsers connect directly over WebRTC (PeerJS public signaling, no setup); if `FIREBASE_CONFIG` is set, rooms run on Firebase Realtime Database with anonymous auth instead (rules in `database.rules.json`). The plants player runs the authoritative simulation. The game lives in `docs/` for GitHub Pages.
