@@ -186,6 +186,27 @@ a.chip{text-decoration:none;display:inline-block}
 @media (orientation:portrait) and (max-width:700px){.rotate-hint{display:block}}
 @media (prefers-reduced-motion:reduce){.bigstars .star.on{animation:none}.btn{transition:none}}
 
+/* ---------- phone version (mobile.html adds .mobile on <html>) ---------- */
+.mobile .stage{padding:0;gap:0;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.mobile .game{width:min(100%,calc(100dvh*16/9));border-radius:0;box-shadow:none}
+.mobile .ov{overflow-y:auto;overscroll-behavior:contain;align-items:flex-start;justify-content:flex-start;padding:1.2cqw 0}
+.mobile .ov>*{margin:auto}
+.mobile .ov>.panel{zoom:1.3;max-width:calc(97cqw/1.3)!important;box-sizing:border-box}
+.mobile .ov>.map{zoom:1.22;width:calc(97cqw/1.22)}
+.mobile .ov-title{align-items:center;padding:0}
+.mobile .ov-title>.title-block{zoom:1.22;margin:auto 0;max-width:calc(46cqw/1.22)}
+.mobile .world .wsub,.mobile .mode span{font-size:1.15cqw}
+.mobile .lvl{padding:.45cqw .6cqw}
+.mobile .pchips{max-width:100%}
+.mobile .rotate-hint{display:none}
+.mobile .panel>.row:last-child,.mobile #onBtns{position:sticky;bottom:-1.2cqw;z-index:3;padding:.8cqw 0 .6cqw;margin-top:-.4cqw;width:100%;justify-content:center;background:linear-gradient(180deg,rgba(22,58,46,0),var(--panel) 40%)}
+.mobile .pchips.mini .pchip{width:5.4cqw;font-size:.8cqw}
+@media (orientation:portrait){
+  .mobile .rotate-hint{display:flex;position:fixed;inset:0;z-index:50;flex-direction:column;gap:14px;align-items:center;justify-content:center;background:#0b1f17;color:var(--paper);font-family:var(--display);font-size:26px;padding:24px}
+  .mobile .rotate-hint::before{content:"";width:58px;height:96px;border:4px solid var(--leaf);border-radius:12px;animation:turnphone 1.8s ease-in-out infinite}
+}
+@keyframes turnphone{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+
 </style>
 </head>
 <body>
@@ -269,7 +290,7 @@ a.chip{text-decoration:none;display:inline-block}
       </div>
     </section>
   </div>
-  <p class="rotate-hint">أدر هاتفك أفقياً لتجربة أفضل.</p>
+  <p class="rotate-hint">أدر الجوال بالعرض عشان تلعب</p>
 </div>
 <script src="firebase-config.js"></script>
 <script>
@@ -279,6 +300,8 @@ const W=1280,H=720,GX=190,GY=120,TW=106,TH=108,ROWS=5,COLS=9,GR=GX+COLS*TW,GB=GY
 const TAU=Math.PI*2;
 const rowY=r=>GY+r*TH+TH/2, colX=c=>GX+c*TW+TW/2, baseY=r=>rowY(r)+36;
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
+// Phone version: small canvas labels are drawn bigger so they stay readable on a ~600px wide screen.
+const MOB=!!window.HURRAS_MOBILE,MOBF=s=>MOB&&s<22?Math.min(22,s+6):s;
 const F_UI='"Baloo Bhaijaan 2","Segoe UI",Tahoma,sans-serif', F_DISP='Lalezar,"Baloo Bhaijaan 2","Segoe UI",Tahoma,sans-serif';
 const REDUCED=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
@@ -504,7 +527,7 @@ function dewIcon(c,x,y,r,glow){
   c.fillStyle=g;dropPath(c,x,y,r);c.fill();c.strokeStyle='#1f7fae';c.lineWidth=Math.max(1,r*.14);c.stroke();
   c.fillStyle='rgba(255,255,255,.85)';ell(c,x-r*.35,y-r*.3,r*.22,r*.36,-.4);c.fill();
 }
-function txt(c,s,x,y,o){o=o||{};c.font=`${o.weight||700} ${o.size||20}px ${o.font||F_UI}`;c.textAlign=o.align||'center';c.textBaseline=o.base||'middle';
+function txt(c,s,x,y,o){o=o||{};c.font=`${o.weight||700} ${MOBF(o.size||20)}px ${o.font||F_UI}`;c.textAlign=o.align||'center';c.textBaseline=o.base||'middle';
   try{c.direction=o.dir||'rtl';}catch(e){}
   if(o.stroke){c.lineJoin='round';c.strokeStyle=o.stroke;c.lineWidth=o.sw||4;c.strokeText(s,x,y);}c.fillStyle=o.col||'#fff';c.fillText(s,x,y);}
 function starPath(c,x,y,r){c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr2=i%2?r*.45:r;c.lineTo(x+Math.cos(a)*rr2,y+Math.sin(a)*rr2);}c.closePath();}
@@ -1218,7 +1241,7 @@ function updateSlimes(dt){
     if(s.stunT>0){s.stunT-=dt;if(s.snared>0)s.snared-=dt;if(!s.fly)s.hopY=Math.max(0,s.hopY-dt*240);s.sq=1;continue;}
     s.snared=0;
     if(s.jumpT>=0){s.jumpT+=dt/.8;const k=Math.min(1,s.jumpT);s.x=lerp(s.jx0,s.jx1,k);s.hopY=Math.sin(k*Math.PI)*110;s.sq=.86;if(k>=1){s.jumpT=-1;s.hopY=0;s.sq=1.25;}continue;}
-    if(s.fly){s.x-=d.speed*(s.slowT>0?.5:1)*dt;s.hopY=70+Math.sin(G.t*6+s.id)*6;s.sq=1;if(s.x<GX-26)leak(s);continue;}
+    if(s.fly){s.x-=d.speed*(s.spd||1)*(s.slowT>0?.5:1)*dt;s.hopY=70+Math.sin(G.t*6+s.id)*6;s.sq=1;if(s.x<GX-26)leak(s);continue;}
     if(d.ranged&&s.x<W-20){let tg=null;for(const p of G.plants){if(p.gone||p.r!==s.row||PLANTS[p.type].trap)continue;if(p.x<s.x&&s.x-p.x<TW*2.6&&(!tg||p.x>tg.x))tg=p;}
       if(tg){s.hopY=Math.max(0,s.hopY-dt*240);s.sq=1+Math.sin(G.t*5+s.id)*.04;s.spitT-=dt;
         if(s.spitT<=0){s.spitT=2.2;s.spitAnim=.3;G.projs.push({type:'spit',sx:s.x-24,sy:s.y-SLIMES[s.type].r*1.2,x:s.x-24,y:s.y-40,tp:tg,tx:tg.x,ty:tg.y-30,t:0,dur:.7,row:tg.r,rot:0,dmg:60});SFX.lob();}continue;}}
@@ -1239,13 +1262,13 @@ function updateSlimes(dt){
       else if(p.type==='spring'&&p.cd<=0){const sl=p.lv||1;p.cd=8/SPD[sl-1];p.fireT=0;s.jumpT=0;s.jx0=s.x;s.jx1=Math.min(W+20,s.x+TW*(2+.5*sl));s.eat=null;burst(p.x,p.y-40,10,'#a8f0dc',180,.5,4);SFX.lob();continue;}
       else if(s.type==='jump'&&!s.jumped){s.jumped=true;s.jumpT=0;s.jx0=s.x;s.jx1=s.x-TW*1.4;SFX.lob();continue;}
       else if(s.hopY<4){s.eat=p;continue;}}}
-    if(isBoss(s)){const ti=s.type==='titan';s.x-=d.speed*slow*(ti&&s.enraged?1.6:1)*dt;s.sq=1+Math.sin(G.t*4)*.03;s.hopY=0;s.summonT-=dt;
+    if(isBoss(s)){const ti=s.type==='titan';s.x-=d.speed*(s.spd||1)*slow*(ti&&s.enraged?1.6:1)*dt;s.sq=1+Math.sin(G.t*4)*.03;s.hopY=0;s.summonT-=dt;
       if(!ti&&s.summonT<=0&&s.x<W-80){s.summonT=s.type==='lord'?9:7.5;summon(s);}
       if(s.type==='lord'){s.throwT-=dt;if(s.throwT<=0&&s.x<W-60){s.throwT=6;darkThrow(s);}}
       if(ti)titanAct(s,dt);}
-    else if(d.walk){s.ph+=dt*slow*.9;s.x-=d.speed*slow*dt;s.hopY=Math.abs(Math.sin(s.ph*Math.PI*2))*2.5;s.sq=1;}
+    else if(d.walk){s.ph+=dt*slow*.9;s.x-=d.speed*(s.spd||1)*slow*dt;s.hopY=Math.abs(Math.sin(s.ph*Math.PI*2))*2.5;s.sq=1;}
     else{s.ph+=dt*slow/d.hop;const ph=s.ph%1,air=ph>.25&&ph<.85;
-      if(air)s.x-=d.speed*slow*dt/.6;
+      if(air)s.x-=d.speed*(s.spd||1)*slow*dt/.6;
       s.hopY=air?Math.sin((ph-.25)/.6*Math.PI)*d.r*.42:0;
       s.sq=air?.9:1+.15*Math.sin((ph<.25?ph/.25:(ph-.85)/.15)*Math.PI);
       if(!air&&s.lastAir)burst(s.x,s.y,3,'rgba(255,255,255,.5)',50,.3,3,0);s.lastAir=air;}
@@ -1625,6 +1648,7 @@ function render(){
   if(G.shake>0&&!REDUCED)c.translate(rand(-1,1)*G.shake,rand(-1,1)*G.shake);
   c.drawImage(bgCv,0,0,W,H);
   if(G.theme==='cave'){for(const [x,y,s,col,ph] of CAVE_CRYS){const a=.12+.12*Math.sin(t*1.5+ph);c.fillStyle=col;c.globalAlpha=a;circ(c,x,y-s,s*2.4);c.fill();}c.globalAlpha=1;}
+  if(G.pvp&&(G.role==='slime'||G.local))drawHouses(c,t);
   drawGhost(c);
   for(const f of G.fx)if(f.type==='puddle')drawFX(c,f);
   for(const p of G.plants)if(PLANTS[p.type].trap)drawPlantAt(c,p,t);
@@ -1801,7 +1825,8 @@ function tryPlace(t){const id=G.sel,cd=G.cards.find(c=>c.id===id);if(!cd)return;
     SFX.deny();if(ex.type===id)popText(ex.x,ex.y-100,canMerge(id)?'أقصى مستوى':'لا تُدمج','#ffb3c0',18);return;}
   G.dew-=d.cost;cd.cd=d.cd;placePlant(id,t.r,t.c);G.sel=null;SFX.plant();}
 function dig(t){const p=G.grid[t.r][t.c];if(p){removePlant(p);G.plants=G.plants.filter(q=>q!==p);burst(p.x,p.y-10,12,theme2dust(),160,.5,4);SFX.dig();}G.sel=null;}
-function handleDown(p){if(G.role==='slime'){slimeDown(p);return;}if(G.ai){if(inR(p,BTN_PAUSE)){pauseGame();return;}if(p.y>=GB+4){localBarDown(p);return;}if(p.y>=GY&&p.y<GB&&p.x>=GX){const r=clamp(Math.floor((p.y-GY)/TH),0,ROWS-1);G.slane=r;localDeploy(locType(G.ssel),r);}return;}
+function handleDown(p){if(G.role==='slime'){slimeDown(p);return;}if(G.local){for(let i=0;i<2;i++)if(inR(p,houseRect(i))){localHouse(i);return;}}
+  if(G.ai){if(inR(p,BTN_PAUSE)){pauseGame();return;}if(p.y>=GB+4){localBarDown(p);return;}if(p.y>=GY&&p.y<GB&&p.x>=GX){const r=clamp(Math.floor((p.y-GY)/TH),0,ROWS-1);G.slane=r;localDeploy(locType(G.ssel),r);}return;}
   if(G.local&&p.y>=GB+4){localBarDown(p);return;}
   if(collectAt(p))return;
   if(p.y<UI.cy+UI.ch+4){
@@ -1829,7 +1854,7 @@ window.addEventListener('keydown',e=>{
   if(screen!=='play'||!G||G.over)return;
   if(G.local&&localKey(e))return;
   if(G.ai){if(e.code==='Escape'||e.code==='Space'){e.preventDefault();pauseGame();}return;}
-  const n=parseInt(e.key,10);if(G.role==='slime'){if(n>=1&&n<=9)slimeSelect(n-1);if(e.code==='Escape'){if(G.sel)G.sel=null;else pauseGame();}return;}if(n>=1&&n<=9&&G.cards[n-1]){selectCard(n-1);return;}
+  const n=parseInt(e.key,10);if(G.role==='slime'){if(n>=1&&n<=9)slimeSelect(n-1);if(e.code==='KeyN')slimeNest();if(e.code==='KeyP')slimePower();if(e.code==='KeyH')slimeHarvest();if(e.code==='Escape'){if(G.sel)G.sel=null;else pauseGame();}return;}if(n>=1&&n<=9&&G.cards[n-1]){selectCard(n-1);return;}
   if(e.code==='KeyS'){G.sel=G.sel==='shovel'?null:'shovel';return;}
   if(e.code==='KeyQ'){useSkill(0);return;}if(e.code==='KeyW'){useSkill(1);return;}
   if(e.code==='Escape'){if(G.sel)G.sel=null;else pauseGame();return;}
@@ -1857,11 +1882,17 @@ soundLabel();
 
 
 // ================= online versus: vegetables vs slime =================
-const NETV=4;
+const NETV=5;
 const PVP_COST={basic:[25,2],fast:[35,3],rock:[75,6],mother:[100,10],split:[75,6],jump:[50,4],shell:[70,6],volatile:[60,6],magma:[100,8],winged:[55,5],ghost:[65,6],ice:[85,8],healer:[80,8],spitter:[80,8],warrior:[130,10],king:[600,60],titan:[750,60],lord:[900,60]};
 const PVP_SLIMES=['basic','fast','rock','jump','shell','volatile','winged','warrior','mother','split','magma','ghost','ice','healer','spitter'];
 const PVP_BOSSES=['king','titan','lord'];
-const NEST_COST=[150,250,400],PVP_TIME=480,PVP_WARM=20,BOSS_AFTER=180,RUSH_AT=300;
+const NEST_COST=[150,250,400,550,700],NEST_MAX=5,POW_COST=[200,350,500],POW_MAX=3,HV_TIME=20,HV_CD=70,PVP_TIME=360,PVP_WARM=10,BOSS_AFTER=120,RUSH_AT=240,PVP_SPD=1.15;
+for(const k in PVP_COST)PVP_COST[k][1]=Math.round(PVP_COST[k][1]*7.5)/10;
+const jellyRate=g=>(6+3*(g.nest||0)+houseJelly(g))*(g.pvpT>RUSH_AT?1.5:1)*(g.hv>0?2:1);
+const minsTxt=s=>s===60?'دقيقة':s===120?'دقيقتين':`${s/60} دقائق`;
+function pvpBuff(s){const p=G.spow||0,m=1+.25*p;for(const k of['hp','maxHp','shell','maxShell','guard','maxGuard','armor','maxArmor'])s[k]*=m;s.spd=PVP_SPD*(1+.06*p);return s;}
+function doPower(){if((G.spow||0)>=POW_MAX||G.jelly<POW_COST[G.spow||0])return false;G.jelly-=POW_COST[G.spow||0];G.spow=(G.spow||0)+1;return true;}
+function doHarvest(){if(G.hv>0||G.hvcd>0||G.pvpT<PVP_WARM)return false;G.hv=HV_TIME;G.hvcd=HV_CD;return true;}
 const PJ={seed:0,ice:2,gourd:3,honey:4,spit:5,dark:6,frond:7,acorn:8},PJR=['seed','seed','ice','gourd','honey','spit','dark','frond','acorn'];
 const SPL={'255,170,70':0,'245,178,26':1,'47,179,154':2,'150,90,255':3},SPLR=['255,170,70','245,178,26','47,179,154','150,90,255'];
 const NET={room:null,code:null,team:null,phase:'idle',ready:false,match:0,lastM:0,oppBy:null,oppName:'',oppDeck:[],deck:['basic','fast','rock','jump','shell','volatile','winged','warrior'],boss:'king',
@@ -1906,7 +1937,7 @@ function openOnline(){clearCountdown();screen='online';G=null;show('ovOnline');
 function onMenu(){netLeave();
   onSet('اللعب أونلاين','فريق الخضروات ضد فريق السلايم',`
     ${roomApi&&roomApi.isWs?'<div class="joinrow namerow"><label for="pName">اسمك</label><input id="pName" maxlength="16" autocomplete="off" aria-label="اسمك"></div>':''}
-    <div class="teams"><button class="team t-plants" id="mkP" type="button"><img alt="" src="${PORT_URL.pine||''}"><strong>فريق الخضروات</strong><span>تدافع عن الحديقة ${PVP_TIME/60} دقائق</span></button>
+    <div class="teams"><button class="team t-plants" id="mkP" type="button"><img alt="" src="${PORT_URL.pine||''}"><strong>فريق الخضروات</strong><span>تدافع عن الحديقة ${minsTxt(PVP_TIME)}</span></button>
     <button class="team t-slime" id="mkS" type="button"><img alt="" src="${SPORT_URL.warrior||''}"><strong>فريق السلايم</strong><span>تجمع الوحل وتنزّل الوحوش</span></button></div>
     <p class="rules">اختر فريقك لتنشئ مباراة، أو انضم لمباراة صاحبك بالكود:</p>
     <div class="joinrow"><input id="joinCode" maxlength="4" inputmode="numeric" placeholder="0000" dir="ltr" autocomplete="off" aria-label="كود المباراة من 4 أرقام"><button class="btn sm" id="bJoin" type="button">انضم</button></div>
@@ -1957,8 +1988,8 @@ function netRoomChanged(){if(!NET.room)return;let others=[];try{others=NET.room.
   if(NET.phase==='setup'){if(!opp){if(screen==='online'){NET.phase='waiting';NET.ready=false;NET.room.presence({ready:false}).catch(()=>{});roomApi.presence({open:{v:NETV,code:NET.code,team:NET.team}}).catch(()=>{});onWaiting('خصمك خرج. ننتظر لاعباً آخر بنفس الكود:');}return;}
     netOppInfo(opp);updateSetupStatus(opp);netMaybeStart(opp);}}
 function onSetup(){const plants=NET.team==='plants';
-  const rules=plants?`أنت تدافع: اصمد ${PVP_TIME/60} دقائق. ما فيه موجات آلية، كل وحش ينزّله خصمك. إذا اخترق السلايم السياج خمس مرات تخسر.`
-    :`أنت تهاجم: تبدأ بـ100 وحل، ويزيد 4 كل ثانية بعد أول ${PVP_WARM} ثانية، وكل مستوى عش يضيف 2 في الثانية، وبعد الدقيقة 5 يصير الدخل ×1.5. تكسب 75 كل ما يعبر سلايم السياج، و40% من سعر أي نبتة تدمّرها. الزعيم يُفتح بعد 3 دقائق. اخترق السياج خمس مرات لتفوز.`;
+  const rules=plants?`أنت تدافع: اصمد ${minsTxt(PVP_TIME)}. ما فيه موجات آلية، كل وحش ينزّله خصمك. إذا اخترق السلايم السياج خمس مرات تخسر.`
+    :`أنت تهاجم: تبدأ بـ150 وحل، ويزيد 6 كل ثانية بعد أول ${PVP_WARM} ثوانٍ. العش (5 مستويات) يضيف 3 في الثانية لكل مستوى، و«حصاد ×2» يضاعف الدخل ${HV_TIME} ثانية، و«قوة» (3 مستويات) تخلي وحوشك أقوى +25% وأسرع. بعد الدقيقة ${RUSH_AT/60} يصير الدخل ×1.5. تكسب 75 كل ما يعبر سلايم السياج، و40% من سعر أي نبتة تدمّرها. الزعيم يُفتح بعد ${minsTxt(BOSS_AFTER)}. وعندك مربعين «بيت» مخفيين عن خصمك: اختر وحش واضغط على البيت فيطلع منه نفس الوحش لحاله، أو اضغط على البيت بدون وحش يصير «بيت وحل» يجمع لك ${JH_RATE} في الثانية. بيت فوق بيت يرفع مستواه (3 مستويات): وحوش أقوى وأسرع. اخترق السياج خمس مرات لتفوز.`;
   onSet(`الكود ${NET.code} • أنت ${plants?'فريق الخضروات':'فريق السلايم'}`,'جهّز فريقك',
     `<p class="rules">${rules}</p><p class="lo-head"><span>${plants?'اختر 8 نباتات':'اختر 8 وحوش (السعر على قوته)'}</span><span id="onCount"></span></p><div class="pchips" id="onChips"></div>${plants?'':'<p class="lo-head"><span>الزعيم</span></p><div class="pchips" id="onBoss"></div>'}<p class="opp" id="onOpp"></p>`,
     [['جاهز','',netToggleReady],['خروج','ghost',onMenu]]);
@@ -1995,17 +2026,17 @@ function netRematch(){if(!NET.room){goMap();return;}G=null;NET.phase='setup';NET
 
 // ---------- match ----------
 function newPvpGame(role){newGame(-1,0);
-  Object.assign(G,{surv:false,pvp:true,role,remote:role==='slime',pvpT:0,timeLeft:PVP_TIME,jelly:100,nest:0,scd:{},lastCmd:0,tut:-1,hearts:5,dew:150,sky:10,hpMul:1,
-    oppDeck:NET.oppDeck||[],sdeck:NET.deck.slice(),sboss:NET.boss,sshake:[0,0,0,0,0,0,0,0,0],jellySnap:100,ack:0,scdSnap:[],pMap:new Map(),sMap:new Map(),said:{}});
+  Object.assign(G,{surv:false,pvp:true,role,remote:role==='slime',pvpT:0,timeLeft:PVP_TIME,jelly:150,nest:0,spow:0,hv:0,hvcd:0,houses:[null,null],scd:{},lastCmd:0,tut:-1,hearts:5,dew:200,sky:7,hpMul:1,
+    oppDeck:NET.oppDeck||[],sdeck:NET.deck.slice(),sboss:NET.boss,sshake:[0,0,0,0,0,0,0,0,0],jellySnap:150,ack:0,scdSnap:[],pMap:new Map(),sMap:new Map(),said:{}});
   G.lvl=Object.assign({},G.lvl,{name:'مباراة أونلاين'});
   if(role==='slime'){G.cards=[];G.skills=[];G.sel=null;G.plants=[];G.slimes=[];G.drops=[];G.sky=0;}
   NET.phase='play';NET.fxSeq=0;NET.fxQ=[];NET.seenFx=0;NET.myCmds=[];NET.cmdId=0;NET.lastSeen=performance.now();NET.lastSnap=null;NET.sendT=0;
   const opp=NET.oppName||'خصمك';
-  banner(role==='plants'?'فريق الخضروات':'فريق السلايم',role==='plants'?`اصمد ${PVP_TIME/60} دقائق أمام ${opp}`:`اكسر دفاع ${opp} خمس مرات`,3);}
+  banner(role==='plants'?'فريق الخضروات':'فريق السلايم',role==='plants'?`اصمد ${minsTxt(PVP_TIME)} أمام ${opp}`:`اكسر دفاع ${opp} خمس مرات`,3);}
 function pvpTick(dt){const prev=G.pvpT;G.pvpT+=dt;if(G.ai)aiTick(dt);const el=G.pvpT;G.timeLeft=Math.max(0,PVP_TIME-el);
-  if(el>PVP_WARM)G.jelly+=(4+2*G.nest)*(el>RUSH_AT?1.5:1)*dt;
+  if(el>PVP_WARM)G.jelly+=jellyRate(G)*dt;if(G.hv>0)G.hv=Math.max(0,G.hv-dt);if(G.hvcd>0)G.hvcd=Math.max(0,G.hvcd-dt);housesTick(dt);
   for(const k in G.scd)if(G.scd[k]>0)G.scd[k]=Math.max(0,G.scd[k]-dt);
-  G.hpMul=1+el/800;
+  G.hpMul=1+el/600;
   if(prev<PVP_WARM&&el>=PVP_WARM)banner('الهجوم بدأ!','فريق السلايم يقدر ينزّل الوحوش الآن',2);
   if(prev<RUSH_AT&&el>=RUSH_AT)banner('ساعة الحسم!','دخل السلايم صار ×1.5',2.2);
   if(prev<BOSS_AFTER&&el>=BOSS_AFTER)banner('الزعماء متاحون',G.local?'فريق السلايم يقدر ينزّل زعيمه الآن':'خصمك يقدر ينزّل زعيماً الآن',2);
@@ -2013,12 +2044,15 @@ function pvpTick(dt){const prev=G.pvpT;G.pvpT+=dt;if(G.ai)aiTick(dt);const el=G.
 function pvpApplyCmds(op){if(!op||op.cm!==NET.match||!Array.isArray(op.cmds))return;
   const cmds=op.cmds.filter(c=>Array.isArray(c)&&typeof c[0]==='number'&&c[0]>G.lastCmd).sort((a,b)=>a[0]-b[0]);
   for(const c of cmds){G.lastCmd=c[0];const ti=c[1],row=c[2];
-    if(ti===-1){if(G.nest<3&&G.jelly>=NEST_COST[G.nest]){G.jelly-=NEST_COST[G.nest];G.nest++;}continue;}
+    if(ti===-1){if(G.nest<NEST_MAX&&G.jelly>=NEST_COST[G.nest]){G.jelly-=NEST_COST[G.nest];G.nest++;}continue;}
+    if(ti===-2){if(doPower())banner('السلايم صار أقوى!',`قوة المستوى ${G.spow}`,1.6);continue;}
+    if(ti===-3){if(doHarvest())banner('حصاد الوحل!','دخل السلايم ×2',1.6);continue;}
+    if(ti===-4){const slot=Math.floor(row/1000),code=row%1000;if(code===JELLY_HOUSE||G.oppDeck.includes(SLIME_ORDER[code]))doHouse(slot,code);continue;}
     const type=SLIME_ORDER[ti],pc=PVP_COST[type];if(!pc||!G.oppDeck.includes(type))continue;
     const boss=PVP_BOSSES.includes(type);if(!boss&&!(row>=0&&row<ROWS))continue;
     if(G.pvpT<PVP_WARM||G.jelly<pc[0]||(G.scd[type]||0)>0)continue;
     if(boss&&(G.pvpT<BOSS_AFTER||G.slimes.some(s=>!s.dead&&isBoss(s))))continue;
-    G.jelly-=pc[0];G.scd[type]=pc[1];const s=spawnSlime(type,boss?2:row,W+20);G.fx.push({type:'poof',x:W-40,y:s.y-20,t:0,dur:.5});
+    G.jelly-=pc[0];G.scd[type]=pc[1];const s=pvpBuff(spawnSlime(type,boss?2:row,W+20));G.fx.push({type:'poof',x:W-40,y:s.y-20,t:0,dur:.5});
     if(boss)banner(`${SLIMES[type].name} قادم!`,'خصمك أنزل زعيمه',2.2);}}
 function netCollectFx(){const R=Math.round;for(const f of G.fx){if(f._n)continue;f._n=1;let e=null;
   switch(f.type){case 'bolt':e=[1,f.col==='cyan'?1:0];for(const p of f.pts.slice(0,4))e.push(R(p[0]),R(p[1]));break;
@@ -2034,7 +2068,7 @@ function pvpSnapshot(){const P=[];
     if(s.enraged)f|=1024;if(s.swingT>=0)f|=2048;if(s.jumpT>=0||s.fly)f|=4096;if(s.spitAnim>0)f|=8192;
     S.push(s.id,SLIME_ORDER.indexOf(s.type),Math.round(s.x),s.row,Math.max(0,Math.min(99,Math.round(99*cur/tot))),f,(f&4096)?Math.round(s.hopY):0);}
   const J=[];for(const pr of G.projs.slice(-24)){const k=PJ[pr.type];if(k==null)continue;J.push(pr.type==='seed'&&pr.gold?1:k,Math.round(pr.x),Math.round(pr.y));}
-  const snap={t:Math.round(G.pvpT*10),tl:Math.ceil(G.timeLeft),h:G.hearts,j:Math.floor(G.jelly),n:G.nest,ack:G.lastCmd,cd:G.oppDeck.map(k=>Math.ceil((G.scd[k]||0)*10)),P,S,J,F:NET.fxQ.slice(-6)};
+  const snap={t:Math.round(G.pvpT*10),tl:Math.ceil(G.timeLeft),h:G.hearts,j:Math.floor(G.jelly),n:G.nest,pw:G.spow||0,hv:Math.ceil((G.hv||0)*10),hc:Math.ceil((G.hvcd||0)*10),hs:(G.houses||[]).map(h=>h?[h.code,h.lvl,h.code===JELLY_HOUSE?0:Math.round(99*(1-Math.max(0,h.t)/housePeriod(SLIME_ORDER[h.code],h.lvl)))]:0),ack:G.lastCmd,cd:G.oppDeck.map(k=>Math.ceil((G.scd[k]||0)*10)),P,S,J,F:NET.fxQ.slice(-6)};
   let n=JSON.stringify(snap).length;
   while(n>3500&&snap.J.length){snap.J.length=Math.max(0,snap.J.length-9);n=JSON.stringify(snap).length;}
   while(n>3500&&snap.S.length){snap.S.length=snap.S.length-7;n=JSON.stringify(snap).length;}
@@ -2067,7 +2101,7 @@ function netTick(dt){if(!NET.room||NET.phase!=='play'||!G||!G.pvp)return;const n
 // ---------- slime player (remote view) ----------
 function remoteApply(s){
   const prevT=G.pvpT;G.pvpT=(s.t||0)/10;G.timeLeft=s.tl;if(typeof s.h==='number'&&s.h<G.hearts){G.red=.4;popText(GX+20,GY+40,'+75','#ffd76a',26);SFX.horn();}G.hearts=s.h;
-  G.jellySnap=s.j||0;G.nest=s.n||0;G.ack=s.ack||0;G.scdSnap=Array.isArray(s.cd)?s.cd:[];NET.myCmds=NET.myCmds.filter(c=>c[0]>G.ack);
+  G.jellySnap=s.j||0;G.nest=s.n||0;G.spow=s.pw||0;G.hv=(s.hv||0)/10;G.hvcd=(s.hc||0)/10;G.houses=Array.isArray(s.hs)?s.hs.map(e=>Array.isArray(e)?{code:e[0],lvl:e[1],prog:(e[2]||0)/99}:null):[null,null];G.ack=s.ack||0;G.scdSnap=Array.isArray(s.cd)?s.cd:[];NET.myCmds=NET.myCmds.filter(c=>c[0]>G.ack);
   if(prevT<PVP_WARM&&G.pvpT>=PVP_WARM)banner('الهجوم بدأ!','نزّل وحوشك',2);
   if(prevT<RUSH_AT&&G.pvpT>=RUSH_AT)banner('ساعة الحسم!','دخلك صار ×1.5',2.2);
   if(prevT<BOSS_AFTER&&G.pvpT>=BOSS_AFTER)banner('زعيمك متاح!',`${SLIMES[G.sboss].name} جاهز`,2);
@@ -2111,25 +2145,76 @@ function remoteUpdate(dt){G.t+=dt;if(G.banner){G.banner.t+=dt;if(G.banner.t>G.ba
     else if(s.stunT){s.hopY=Math.max(0,s.hopY-dt*240);s.sq=1;}
     else{s.ph+=dt/d.hop;const ph=s.ph%1,air=ph>.25&&ph<.85;s.hopY=air?Math.sin((ph-.25)/.6*Math.PI)*d.r*.42:0;s.sq=air?.9:1+.15*Math.sin((ph<.25?ph/.25:(ph-.85)/.15)*Math.PI);}}
   for(const pr of G.projs){if(pr.type==='seed'||pr.type==='ice')pr.x+=470*dt;pr.rot+=dt*10;}}
-const sRect=i=>i<8?cardRect(i):{x:806,y:UI.cy,w:76,h:96},NEST_R={x:892,y:UI.cy,w:76,h:96};
-function estJelly(){let j=G.jellySnap||0,n=G.nest||0;for(const c of NET.myCmds){if(c[0]<=(G.ack||0))continue;if(c[1]===-1){j-=NEST_COST[Math.min(2,n)];n++;}else{const pc=PVP_COST[SLIME_ORDER[c[1]]];if(pc)j-=pc[0];}}return j;}
+const sRect=i=>i<8?cardRect(i):{x:806,y:UI.cy,w:76,h:96},NEST_R={x:892,y:UI.cy,w:76,h:96},POW_R={x:976,y:UI.cy,w:84,h:46},HV_R={x:976,y:UI.cy+50,w:84,h:46};
+function drawBoostBtns(c,P,Hh,jel,mini){const pw=G.spow||0,canP=pw<POW_MAX&&jel>=POW_COST[pw],hvOn=G.hv>0,canH=!hvOn&&!(G.hvcd>0)&&G.pvpT>=PVP_WARM;
+  c.fillStyle=pw>=POW_MAX?'#5a2a2a':'#7a2f3f';rr(c,P.x,P.y,P.w,P.h,9);c.fill();c.strokeStyle=canP?'rgba(255,226,120,.85)':'rgba(255,255,255,.2)';c.lineWidth=2;c.stroke();
+  c.fillStyle=hvOn?'#2f8a4a':'#2a5a3a';rr(c,Hh.x,Hh.y,Hh.w,Hh.h,9);c.fill();c.strokeStyle=canH?'rgba(255,226,120,.85)':'rgba(255,255,255,.2)';c.lineWidth=2;c.stroke();
+  if(G.hvcd>0&&!hvOn){c.save();rr(c,Hh.x,Hh.y,Hh.w,Hh.h,9);c.clip();c.fillStyle='rgba(0,0,0,.35)';c.fillRect(Hh.x,Hh.y,Hh.w*Math.min(1,G.hvcd/HV_CD),Hh.h);c.restore();}
+  if(mini){txt(c,`قوة${pw?' '+pw:''}`,P.x+P.w/2,P.y+14,{size:12,weight:800,col:'#ffe0e6'});txt(c,pw>=POW_MAX?'كامل':String(POW_COST[pw]),P.x+P.w/2,P.y+P.h-11,{size:11,weight:800,col:'#ffd76a',dir:'ltr'});
+    txt(c,'حصاد',Hh.x+Hh.w/2,Hh.y+14,{size:12,weight:800,col:'#e6ffe8'});txt(c,hvOn?`${Math.ceil(G.hv)}ث`:G.hvcd>0?String(Math.ceil(G.hvcd)):'×2',Hh.x+Hh.w/2,Hh.y+Hh.h-11,{size:11,weight:800,col:'#ffd76a',dir:hvOn?'rtl':'ltr'});return;}
+  txt(c,pw>=POW_MAX?'قوة كاملة':`قوة ${POW_COST[pw]}`,P.x+P.w/2,P.y+15,{size:15,weight:800,col:'#ffe0e6'});
+  for(let k=0;k<POW_MAX;k++){c.fillStyle=k<pw?'#ff7a8a':'rgba(255,255,255,.22)';circ(c,P.x+P.w/2-12+k*12,P.y+P.h-11,4.5);c.fill();}
+  txt(c,hvOn?`حصاد ×2 ${Math.ceil(G.hv)}`:G.hvcd>0?`حصاد ${Math.ceil(G.hvcd)}`:'حصاد ×2',Hh.x+Hh.w/2,Hh.y+Hh.h/2,{size:15,weight:800,col:'#e6ffe8'});}
+
+// ---------- slime houses: two hidden plots on the slime side (only the slime player sees them) ----------
+const HOUSE_ROWS=[1,3],JELLY_HOUSE=99,HOUSE_MAX=3,JH_RATE=4;
+const houseCost=code=>code===JELLY_HOUSE?200:Math.max(60,Math.round(PVP_COST[SLIME_ORDER[code]][0]*.4)*10);
+const housePeriod=(type,lvl)=>(8+PVP_COST[type][0]/6)*Math.pow(.75,lvl-1);
+const houseRect=i=>({x:GR+10,y:GY+HOUSE_ROWS[i]*TH+6,w:W-GR-18,h:TH-12});
+const houseJelly=g=>(g.houses||[]).reduce((a,h)=>a+(h&&h.code===JELLY_HOUSE?JH_RATE*h.lvl:0),0);
+function houseWhy(i,code,jel){const h=(G.houses||[])[i];if(G.pvpT<PVP_WARM)return'انتظر بداية الهجوم';
+  if(code!==JELLY_HOUSE){const t=SLIME_ORDER[code];if(!t||!PVP_COST[t])return'';if(PVP_BOSSES.includes(t))return'الزعيم ما له بيت';}
+  if(h){if(h.code!==code)return'هذا البيت لنوع ثاني';if(h.lvl>=HOUSE_MAX)return'البيت في أعلى مستوى';}
+  if(jel<houseCost(code))return'وحل غير كافٍ';return null;}
+function doHouse(i,code){if(!G.houses)G.houses=[null,null];if(!(i===0||i===1)||houseWhy(i,code,G.jelly)!==null)return false;G.jelly-=houseCost(code);
+  const h=G.houses[i];if(h)h.lvl++;else G.houses[i]={code,lvl:1,t:code===JELLY_HOUSE?0:3};return true;}
+function housesTick(dt){if(!G.houses||G.pvpT<PVP_WARM)return;
+  G.houses.forEach((h,i)=>{if(!h||h.code===JELLY_HOUSE)return;h.t-=dt;if(h.t>0)return;const type=SLIME_ORDER[h.code];h.t=housePeriod(type,h.lvl);
+    const row=clamp(HOUSE_ROWS[i]+((Math.random()*3)|0)-1,0,ROWS-1),s=pvpBuff(spawnSlime(type,row,W+20)),m=1+.3*(h.lvl-1);
+    for(const k of['hp','maxHp','shell','maxShell','guard','maxGuard','armor','maxArmor'])s[k]*=m;s.fromHouse=true;});}
+function drawHouseShape(c,x,y,w,h,body,roof){const rh=h*.36;c.fillStyle=roof;c.beginPath();c.moveTo(x-5,y+rh);c.lineTo(x+w/2,y);c.lineTo(x+w+5,y+rh);c.closePath();c.fill();
+  c.fillStyle=body;rr(c,x+3,y+rh-2,w-6,h-rh+2,8);c.fill();c.strokeStyle='rgba(0,0,0,.25)';c.lineWidth=2;c.stroke();}
+function drawHouses(c,t){const H2=G.houses||[null,null],selType=G.role==='slime'?G.sel:(G.local?locType(G.ssel):null);
+  for(let i=0;i<2;i++){const R=houseRect(i),h=H2[i];
+    if(!h){c.fillStyle='rgba(30,16,46,.38)';rr(c,R.x,R.y,R.w,R.h,14);c.fill();c.save();c.setLineDash([8,6]);
+      c.strokeStyle=selType?`rgba(255,226,120,${.6+.3*Math.sin(t*5)})`:'rgba(225,200,255,.5)';c.lineWidth=3;rr(c,R.x,R.y,R.w,R.h,14);c.stroke();c.restore();
+      txt(c,'+',R.x+R.w/2,R.y+R.h/2-14,{size:34,weight:800,col:'rgba(241,228,255,.85)'});txt(c,'بيت',R.x+R.w/2,R.y+R.h-18,{size:15,weight:800,col:'#e9dcff'});continue;}
+    const jelly=h.code===JELLY_HOUSE,type=jelly?null:SLIME_ORDER[h.code],d=type?SLIMES[type]:null;
+    drawHouseShape(c,R.x+10,R.y+2,R.w-20,R.h-24,jelly?'#7a4bb8':d.c[0],jelly?'#3a1f5c':d.c[1]);
+    if(jelly)jellyIcon(c,R.x+R.w/2,R.y+R.h*.52,13);else if(SPORT[type])c.drawImage(SPORT[type],R.x+R.w/2-21,R.y+R.h*.34,42,36);
+    for(let k=0;k<HOUSE_MAX;k++){c.fillStyle=k<h.lvl?'#ffd23f':'rgba(255,255,255,.28)';starPath(c,R.x+R.w/2-16+k*16,R.y+R.h-10,5.5);c.fill();}
+    if(!jelly){const prog=h.prog!=null?h.prog:1-Math.max(0,h.t)/housePeriod(type,h.lvl);c.fillStyle='rgba(0,0,0,.45)';rr(c,R.x+12,R.y+R.h-26,R.w-24,6,3);c.fill();
+      c.fillStyle='#ffd23f';rr(c,R.x+12,R.y+R.h-26,Math.max(3,(R.w-24)*clamp(prog,0,1)),6,3);c.fill();}
+    else txt(c,`+${JH_RATE*h.lvl}/ث`,R.x+R.w/2,R.y+R.h-26,{size:13,weight:800,col:'#f1e4ff',stroke:'rgba(20,0,40,.7)',sw:3});}}
+function houseIconSmall(c,x,y,s){c.save();c.translate(x,y);c.scale(s,s);drawHouseShape(c,-14,-14,28,26,'#7a4bb8','#3a1f5c');jellyIcon(c,0,4,5);c.restore();}
+function estJelly(){let j=G.jellySnap||0,n=G.nest||0,pw=G.spow||0;for(const c of NET.myCmds){if(c[0]<=(G.ack||0))continue;if(c[1]===-1){j-=NEST_COST[Math.min(NEST_MAX-1,n)];n++;}else if(c[1]===-2){j-=POW_COST[Math.min(POW_MAX-1,pw)];pw++;}else if(c[1]===-3){}else if(c[1]===-4){j-=houseCost(c[2]%1000);}else{const pc=PVP_COST[SLIME_ORDER[c[1]]];if(pc)j-=pc[0];}}return j;}
 function slimeCd(i,type){const pc=PVP_COST[type];if(NET.myCmds.some(c=>c[0]>(G.ack||0)&&SLIME_ORDER[c[1]]===type))return pc[1];return (G.scdSnap[i]||0)/10;}
 function slimeSelect(i){const type=i<8?G.sdeck[i]:G.sboss;if(!type||G.over)return false;if(G.sel===type){G.sel=null;return false;}
   const pc=PVP_COST[type],boss=i===8;let why=null;
-  if(G.pvpT<PVP_WARM)why='انتظر بداية الهجوم';else if(boss&&G.pvpT<BOSS_AFTER)why='الزعيم يُفتح بعد 3 دقائق';else if(boss&&G.slimes.some(isBoss))why='زعيم واحد فقط في الساحة';
+  if(G.pvpT<PVP_WARM)why='انتظر بداية الهجوم';else if(boss&&G.pvpT<BOSS_AFTER)why=`الزعيم يُفتح بعد ${minsTxt(BOSS_AFTER)}`;else if(boss&&G.slimes.some(isBoss))why='زعيم واحد فقط في الساحة';
   else if(slimeCd(i,type)>0)why='';else if(estJelly()<pc[0])why='وحل غير كافٍ';
   if(why!==null){G.sshake[i]=.3;SFX.deny();if(why)popText(71,100,why,'#ffb3c0',16);return false;}
   G.sel=type;SFX.click();return true;}
 function slimeDeploy(type,row){if(!NET.room||G.over)return;const boss=PVP_BOSSES.includes(type);NET.cmdId++;NET.myCmds.push([NET.cmdId,SLIME_ORDER.indexOf(type),boss?2:row]);if(NET.myCmds.length>12)NET.myCmds.shift();
   NET.room.presence({cmds:NET.myCmds.slice(),cm:NET.match}).catch(()=>{});G.sel=null;SFX.plant();G.fx.push({type:'poof',x:W-50,y:baseY(boss?2:row)-20,t:0,dur:.4});}
-function slimeNest(){if(G.over)return;if(G.nest>=3||NET.myCmds.some(c=>c[0]>(G.ack||0)&&c[1]===-1)){SFX.deny();return;}
+function slimeCmd(code){NET.cmdId++;NET.myCmds.push([NET.cmdId,code,0]);if(NET.myCmds.length>12)NET.myCmds.shift();NET.room.presence({cmds:NET.myCmds.slice(),cm:NET.match}).catch(()=>{});}
+const pendingCmd=code=>NET.myCmds.some(c=>c[0]>(G.ack||0)&&c[1]===code);
+function slimePower(){if(G.over||!NET.room)return;if((G.spow||0)>=POW_MAX||pendingCmd(-2)){SFX.deny();return;}if(estJelly()<POW_COST[G.spow||0]){SFX.deny();popText(71,100,'وحل غير كافٍ','#ffb3c0',16);return;}slimeCmd(-2);SFX.levelup();}
+function slimeHarvest(){if(G.over||!NET.room)return;if(G.hv>0||G.hvcd>0||G.pvpT<PVP_WARM||pendingCmd(-3)){SFX.deny();return;}slimeCmd(-3);SFX.levelup();}
+function slimeNest(){if(G.over)return;if(G.nest>=NEST_MAX||NET.myCmds.some(c=>c[0]>(G.ack||0)&&c[1]===-1)){SFX.deny();return;}
   if(estJelly()<NEST_COST[G.nest]){SFX.deny();popText(71,100,'وحل غير كافٍ','#ffb3c0',16);return;}
   NET.cmdId++;NET.myCmds.push([NET.cmdId,-1,0]);if(NET.myCmds.length>12)NET.myCmds.shift();NET.room.presence({cmds:NET.myCmds.slice(),cm:NET.match}).catch(()=>{});SFX.levelup();}
 function slimeDown(p){
   if(p.y<UI.cy+UI.ch+4){for(let i=0;i<9;i++)if(inR(p,sRect(i))){if(slimeSelect(i))dragCard=G.sel;return;}
-    if(inR(p,NEST_R)){slimeNest();return;}if(inR(p,BTN_PAUSE)){pauseGame();return;}return;}
+    if(inR(p,NEST_R)){slimeNest();return;}if(inR(p,POW_R)){slimePower();return;}if(inR(p,HV_R)){slimeHarvest();return;}if(inR(p,BTN_PAUSE)){pauseGame();return;}return;}
+  for(let i=0;i<2;i++)if(inR(p,houseRect(i))){slimeHouse(i);return;}
   if(G.sel&&p.y>=GY&&p.y<GB&&p.x>=GX){slimeDeploy(G.sel,Math.floor((p.y-GY)/TH));return;}
   G.sel=null;}
+function slimeHouse(i){if(G.over||!NET.room)return;const h=(G.houses||[])[i],code=G.sel?SLIME_ORDER.indexOf(G.sel):(h?h.code:JELLY_HOUSE),R=houseRect(i);
+  const why=NET.myCmds.some(c=>c[0]>(G.ack||0)&&c[1]===-4&&Math.floor(c[2]/1000)===i)?'':houseWhy(i,code,estJelly());
+  if(why!==null){SFX.deny();if(why)popText(R.x+R.w/2-40,R.y-6,why,'#ffb3c0',15);return;}
+  slimeCmd2(-4,i*1000+code);G.sel=null;SFX.levelup();G.fx.push({type:'poof',x:R.x+R.w/2,y:R.y+R.h/2,t:0,dur:.5});}
+function slimeCmd2(code,arg){NET.cmdId++;NET.myCmds.push([NET.cmdId,code,arg]);if(NET.myCmds.length>12)NET.myCmds.shift();NET.room.presence({cmds:NET.myCmds.slice(),cm:NET.match}).catch(()=>{});}
 function slimeUp(p){if(dragCard&&G.sel===dragCard&&downP&&Math.hypot(p.x-downP.x,p.y-downP.y)>24&&p.y>=GY&&p.y<GB&&p.x>=GX)slimeDeploy(G.sel,Math.floor((p.y-GY)/TH));}
 function drawSlimeCard(c,i,type){const R=sRect(i),boss=i===8,pc=PVP_COST[type],ej=estJelly(),sel=G.sel===type,cdT=slimeCd(i,type);
   const lock=boss&&(G.pvpT<BOSS_AFTER||G.slimes.some(isBoss)),warm=G.pvpT<PVP_WARM,ok=!cdT&&!lock&&!warm&&ej>=pc[0];
@@ -2147,11 +2232,11 @@ function drawSlimeHUD(c){
   c.fillStyle='rgba(0,0,0,.3)';rr(c,12,10,118,96,12);c.fill();jellyIcon(c,71,42,16);
   txt(c,String(Math.max(0,Math.floor(estJelly()))),71,86,{size:28,weight:800,col:'#f1e4ff',dir:'ltr',stroke:'rgba(0,0,0,.35)',sw:4});
   for(let i=0;i<9;i++){const type=i<8?G.sdeck[i]:G.sboss;if(type)drawSlimeCard(c,i,type);}
-  const N=NEST_R,can=G.nest<3&&estJelly()>=NEST_COST[Math.min(2,G.nest)];
+  const N=NEST_R,can=G.nest<NEST_MAX&&estJelly()>=NEST_COST[Math.min(NEST_MAX-1,G.nest)];drawBoostBtns(c,POW_R,HV_R,estJelly(),false);
   const g=c.createLinearGradient(0,N.y,0,N.y+N.h);g.addColorStop(0,'#6b4a2a');g.addColorStop(1,'#3a2414');c.fillStyle=g;rr(c,N.x,N.y,N.w,N.h,12);c.fill();
   c.strokeStyle=can?'rgba(255,226,120,.8)':'rgba(255,255,255,.18)';c.lineWidth=2;c.stroke();nestIcon(c,N.x+N.w/2,N.y+30,1);
-  for(let k=0;k<3;k++){c.fillStyle=k<G.nest?'#ffd23f':'rgba(255,255,255,.2)';starPath(c,N.x+N.w/2-14+k*14,N.y+58,5);c.fill();}
-  txt(c,G.nest>=3?'العش كامل':`عش ${NEST_COST[G.nest]}`,N.x+N.w/2,N.y+N.h-12,{size:14,weight:800,col:'#f3e6d0'});
+  for(let k=0;k<NEST_MAX;k++){c.fillStyle=k<G.nest?'#ffd23f':'rgba(255,255,255,.2)';starPath(c,N.x+N.w/2-24+k*12,N.y+58,4.5);c.fill();}
+  txt(c,G.nest>=NEST_MAX?'العش كامل':`عش ${NEST_COST[G.nest]}`,N.x+N.w/2,N.y+N.h-12,{size:14,weight:800,col:'#f3e6d0'});
   const lx=1128,tl=Math.max(0,Math.ceil(G.timeLeft));txt(c,'الوقت المتبقي',lx,34,{size:15,col:'#cdb8e8'});
   txt(c,`${Math.floor(tl/60)}:${String(tl%60).padStart(2,'0')}`,lx,72,{size:32,weight:800,col:tl<=60?'#ffb36b':'#f3f8e8',dir:'ltr'});
   const B=BTN_PAUSE;c.fillStyle='rgba(255,255,255,.1)';rr(c,B.x,B.y,B.w,B.h,10);c.fill();c.fillStyle='#f3f8e8';c.fillRect(B.x+B.w/2-9,B.y+B.h/2-11,6,22);c.fillRect(B.x+B.w/2+3,B.y+B.h/2-11,6,22);
@@ -2169,7 +2254,7 @@ function drawPvpBottom(c){
   const boss=G.slimes.find(s=>isBoss(s)&&!s.dead);
   if(boss){const x0=250,w=440;txt(c,SLIMES[boss.type].name,x0+w+70,GB+30,{size:20,font:F_DISP,weight:400,col:'#ffe28a'});c.fillStyle='rgba(0,0,0,.45)';rr(c,x0,GB+21,w,18,9);c.fill();c.fillStyle='#ef4f6e';rr(c,x0+2,GB+23,Math.max(4,(w-4)*boss.hp/boss.maxHp),14,7);c.fill();}
   else txt(c,`${NET.team==='plants'?'فريق الخضروات':'فريق السلايم'} ضد ${NET.oppName||'خصمك'}`,520,GB+30,{size:20,weight:700,col:'#dfeccf'});
-  if(G.role==='slime')txt(c,`دخل الوحل ${((4+2*G.nest)*(G.pvpT>RUSH_AT?1.5:1)).toFixed(0)} في الثانية`,840,GB+30,{size:14,weight:800,col:'#d9b8ff'});
+  if(G.role==='slime')txt(c,`دخل الوحل ${jellyRate(G).toFixed(0)} في الثانية${G.hv>0?' (حصاد)':''}`,840,GB+30,{size:14,weight:800,col:'#d9b8ff'});
   else txt(c,'خمس اختراقات = خسارة',840,GB+30,{size:14,weight:700,col:'#ffb3c0'});
   const x0=920,w=320,y=GB+22,f=clamp(1-G.timeLeft/PVP_TIME,0,1);c.fillStyle='rgba(0,0,0,.45)';rr(c,x0,y,w,16,8);c.fill();
   const g=c.createLinearGradient(x0+w,0,x0,0);g.addColorStop(0,'#9ad35a');g.addColorStop(1,'#b47be6');c.fillStyle=g;rr(c,x0+w-Math.max(8,w*f),y,Math.max(8,w*f),16,8);c.fill();}
@@ -2223,15 +2308,19 @@ function localStart(){if(!(save.loadout||[]).length||!NET.deck.length){SFX.deny(
   NET.oppDeck=netSanitizeDeck(NET.deck,NET.boss);NET.oppName='فريق السلايم';NET.team=null;hideAll();newPvpGame('plants');
   Object.assign(G,{local:true,ctrl:{veg:LOC.veg,slime:LOC.slime},vcur:{r:2,c:2},vci:0,ssel:0,slane:2});G.lvl=Object.assign({},G.lvl,{name:'واحد ضد واحد'});
   if(G.ctrl.veg!=null&&G.cards[0])G.sel=G.cards[0].id;
-  banner('واحد ضد واحد',`الخضروات تصمد ${PVP_TIME/60} دقائق، والسلايم يخترق السياج 5 مرات`,3);screen='play';MUSIC.start(G.theme);}
-function localDeploy(type,row){if(!type||G.over)return;const pc=PVP_COST[type],boss=PVP_BOSSES.includes(type),i=boss?8:G.sdeck.indexOf(type);let why=null;
-  if(G.pvpT<PVP_WARM)why='انتظر بداية الهجوم';else if(boss&&G.pvpT<BOSS_AFTER)why='الزعيم يُفتح بعد 3 دقائق';else if(boss&&G.slimes.some(s=>!s.dead&&isBoss(s)))why='زعيم واحد فقط';
+  banner('واحد ضد واحد',`الخضروات تصمد ${minsTxt(PVP_TIME)}، والسلايم يخترق السياج 5 مرات`,3);screen='play';MUSIC.start(G.theme);}
+function localDeploy(type,row){if(!type||G.over)return;if(type==='jhouse'){SFX.deny();popText(W-170,GB-24,'اضغط على مربع البيت','#ffb3c0',16);return;}const pc=PVP_COST[type],boss=PVP_BOSSES.includes(type),i=boss?8:G.sdeck.indexOf(type);let why=null;
+  if(G.pvpT<PVP_WARM)why='انتظر بداية الهجوم';else if(boss&&G.pvpT<BOSS_AFTER)why=`الزعيم يُفتح بعد ${minsTxt(BOSS_AFTER)}`;else if(boss&&G.slimes.some(s=>!s.dead&&isBoss(s)))why='زعيم واحد فقط';
   else if((G.scd[type]||0)>0)why='';else if(G.jelly<pc[0])why='وحل غير كافٍ';
   if(why!==null){if(i>=0)G.sshake[i]=.3;SFX.deny();if(why)popText(W-170,GB-24,why,'#ffb3c0',16);return;}
-  G.jelly-=pc[0];G.scd[type]=pc[1];const s=spawnSlime(type,boss?2:row,W+20);G.fx.push({type:'poof',x:W-40,y:s.y-20,t:0,dur:.5});SFX.plant();
+  G.jelly-=pc[0];G.scd[type]=pc[1];const s=pvpBuff(spawnSlime(type,boss?2:row,W+20));G.fx.push({type:'poof',x:W-40,y:s.y-20,t:0,dur:.5});SFX.plant();
   if(boss)banner(`${SLIMES[type].name} قادم!`,'فريق السلايم أنزل زعيمه',2.2);}
-const locType=i=>i<8?G.sdeck[i]:G.sboss;
-function localNest(){if(G.over)return;if(G.nest>=3||G.jelly<NEST_COST[G.nest]){SFX.deny();return;}G.jelly-=NEST_COST[G.nest];G.nest++;SFX.levelup();}
+const locType=i=>i<8?G.sdeck[i]:i===8?G.sboss:'jhouse';
+function localHouse(i){if(G.over)return;const type=locType(G.ssel),code=type==='jhouse'?JELLY_HOUSE:SLIME_ORDER.indexOf(type),R=houseRect(i),why=houseWhy(i,code,G.jelly);
+  if(why!==null){SFX.deny();if(why)popText(R.x+R.w/2-40,R.y-6,why,'#ffb3c0',15);return;}doHouse(i,code);SFX.levelup();G.fx.push({type:'poof',x:R.x+R.w/2,y:R.y+R.h/2,t:0,dur:.5});}
+function localNest(){if(G.over)return;if(G.nest>=NEST_MAX||G.jelly<NEST_COST[G.nest]){SFX.deny();return;}G.jelly-=NEST_COST[G.nest];G.nest++;SFX.levelup();}
+function localPower(){if(G.over)return;if(!doPower()){SFX.deny();popText(W-170,GB-24,(G.spow||0)>=POW_MAX?'القوة كاملة':'وحل غير كافٍ','#ffb3c0',16);return;}SFX.levelup();banner('السلايم صار أقوى!',`قوة المستوى ${G.spow}`,1.4);}
+function localHarvest(){if(G.over)return;if(!doHarvest()){SFX.deny();return;}SFX.levelup();banner('حصاد الوحل!','دخل السلايم ×2',1.4);}
 function padPlant(){const card=G.cards[G.vci];if(!card)return;const d=PLANTS[card.id];if(card.cd>0||G.dew<d.cost){card.shake=.3;SFX.deny();return;}G.sel=card.id;tryPlace({r:G.vcur.r,c:G.vcur.c});G.sel=card.id;}
 function localPads(dt){if(G.over)return;
   if(G.ctrl.veg!=null&&G.ctrl.veg!=='ai'){const p=readPad(G.ctrl.veg,dt);if(p){const n=G.cards.length||1;
@@ -2244,20 +2333,21 @@ function localPads(dt){if(G.over)return;
       if(p.press[9]){pauseGame();return;}}
     for(const d of G.drops)if(!d.col&&(d.sky?d.y>=d.gy:d.vy===0))collectAt({x:d.x,y:d.y-12});}
   if(G.ctrl.slime!=null){const p=readPad(G.ctrl.slime,dt);if(p){
-      if(p.mx)G.ssel=(G.ssel+p.mx+9)%9;if(p.press[4])G.ssel=(G.ssel+8)%9;if(p.press[5])G.ssel=(G.ssel+1)%9;
+      if(p.mx)G.ssel=(G.ssel+p.mx+10)%10;if(p.press[4])G.ssel=(G.ssel+9)%10;if(p.press[5])G.ssel=(G.ssel+1)%10;if(p.press[7])localHouse(G.slane<=2?0:1);
       if(p.my)G.slane=clamp(G.slane+p.my,0,ROWS-1);
-      if(p.press[0])localDeploy(locType(G.ssel),G.slane);if(p.press[3])localNest();if(p.press[9]){pauseGame();return;}}}
+      if(p.press[0])localDeploy(locType(G.ssel),G.slane);if(p.press[3])localNest();if(p.press[1])localPower();if(p.press[2])localHarvest();if(p.press[9]){pauseGame();return;}}}
   for(let i=0;i<9;i++)if(G.sshake[i]>0)G.sshake[i]-=dt;}
 function localPausePoll(dt){for(const i of[G.ctrl.veg,G.ctrl.slime]){if(i==null)continue;const p=readPad(i,dt);if(p&&(p.press[9]||p.press[0])){resumeGame();return;}}}
-function localKey(e){if(G.ctrl.slime!=null&&!G.ai)return false;const dn=parseInt(e.key,10);if(G.ai&&dn>=1&&dn<=9){G.ssel=dn-1;SFX.click();e.preventDefault();return true;}
+function localKey(e){if(G.ctrl.slime!=null&&!G.ai)return false;const dn=parseInt(e.key,10);if(G.ai&&dn>=0&&dn<=9){G.ssel=dn===0?9:dn-1;SFX.click();e.preventDefault();return true;}
   if(e.code==='ArrowUp'){G.slane=clamp(G.slane-1,0,ROWS-1);}else if(e.code==='ArrowDown'){G.slane=clamp(G.slane+1,0,ROWS-1);}
-  else if(e.code==='ArrowLeft'){G.ssel=(G.ssel+8)%9;}else if(e.code==='ArrowRight'){G.ssel=(G.ssel+1)%9;}
-  else if(e.code==='Enter'||e.code==='NumpadEnter'){localDeploy(locType(G.ssel),G.slane);}else if(e.code==='KeyN'){localNest();}else return false;
+  else if(e.code==='ArrowLeft'){G.ssel=(G.ssel+9)%10;}else if(e.code==='ArrowRight'){G.ssel=(G.ssel+1)%10;}else if(e.code==='KeyB'){localHouse(G.slane<=2?0:1);}
+  else if(e.code==='Enter'||e.code==='NumpadEnter'){localDeploy(locType(G.ssel),G.slane);}else if(e.code==='KeyN'){localNest();}else if(e.code==='KeyP'){localPower();}else if(e.code==='KeyH'){localHarvest();}else return false;
   e.preventDefault();return true;}
-function localBarDown(p){if(p.y<GB+4)return false;for(let i=0;i<9;i++){const x=120+i*60;if(p.x>=x&&p.x<=x+54){G.ssel=i;SFX.click();return true;}}
-  if(p.x>=666&&p.x<=726){localNest();return true;}return true;}
+const LB={x0:108,step:56,w:50,nest:668,pow:726,hv:784,bw:54};
+function localBarDown(p){if(p.y<GB+4)return false;for(let i=0;i<10;i++){const x=LB.x0+i*LB.step;if(p.x>=x&&p.x<=x+LB.w){G.ssel=i;SFX.click();return true;}}
+  if(p.x>=LB.nest&&p.x<=LB.nest+LB.bw){localNest();return true;}if(p.x>=LB.pow&&p.x<=LB.pow+LB.bw){localPower();return true;}if(p.x>=LB.hv&&p.x<=LB.hv+LB.bw){localHarvest();return true;}return true;}
 function drawLocalCursors(c,t){
-  const type=locType(G.ssel);if(type){const r=PVP_BOSSES.includes(type)?2:G.slane,y=rowY(r);
+  const type=locType(G.ssel);if(type&&type!=='jhouse'){const r=PVP_BOSSES.includes(type)?2:G.slane,y=rowY(r);
     c.fillStyle='rgba(180,123,230,.2)';c.fillRect(GR,GY+r*TH,W-GR,TH);c.fillStyle=`rgba(225,200,255,${.6+.3*Math.sin(t*6)})`;
     for(const k of[0,1]){c.beginPath();c.moveTo(GR-6-k*16,y);c.lineTo(GR+8-k*16,y-12);c.lineTo(GR+8-k*16,y+12);c.closePath();c.fill();}
     c.save();c.globalAlpha=.5;c.translate(W-62,baseY(r));const d=SLIMES[type],sc=PVP_BOSSES.includes(type)?.5:.9;c.scale(sc,sc);
@@ -2267,18 +2357,21 @@ function drawLocalCursors(c,t){
     c.strokeStyle=`rgba(255,226,120,${.75+.25*Math.sin(t*8)})`;c.lineWidth=4;rr(c,x+3,y+3,TW-6,TH-6,10);c.stroke();}}
 function drawLocalSlimeBar(c){const y0=GB+4,h=H-GB-8;
   c.fillStyle='rgba(30,16,46,.93)';rr(c,6,y0,W-12,h,12);c.fill();c.strokeStyle='rgba(180,123,230,.45)';c.lineWidth=2;c.stroke();
-  jellyIcon(c,32,y0+h/2,12);txt(c,String(Math.floor(G.jelly)),78,y0+h/2+1,{size:22,weight:800,col:'#f1e4ff',dir:'ltr'});
-  for(let i=0;i<9;i++){const type=locType(i);if(!type)continue;const pc=PVP_COST[type],boss=i===8,x=120+i*60+(G.sshake[i]>0?Math.sin(G.sshake[i]*60)*3:0),y=y0+3,w=54,hh=h-6;
-    const cd=G.scd[type]||0,lock=boss&&(G.pvpT<BOSS_AFTER||G.slimes.some(s=>!s.dead&&isBoss(s))),ok=!cd&&!lock&&G.pvpT>=PVP_WARM&&G.jelly>=pc[0],sel=G.ssel===i;
+  jellyIcon(c,28,y0+h/2,11);txt(c,String(Math.floor(G.jelly)),68,y0+h/2+1,{size:22,weight:800,col:'#f1e4ff',dir:'ltr'});
+  for(let i=0;i<10;i++){const type=locType(i);if(!type)continue;const jh=type==='jhouse',x=LB.x0+i*LB.step+(i<9&&G.sshake[i]>0?Math.sin(G.sshake[i]*60)*3:0),y=y0+3,w=LB.w,hh=h-6,sel=G.ssel===i;
+    if(jh){const cost=houseCost(JELLY_HOUSE);c.fillStyle='#4b2a6e';rr(c,x,y,w,hh,8);c.fill();c.lineWidth=sel?3.5:1.5;c.strokeStyle=sel?'#ffc94a':'#b47be6';c.stroke();
+      houseIconSmall(c,x+w/2,y+17,.9);txt(c,String(cost),x+w/2,y+hh-8,{size:12,weight:800,col:'#ffd76a',dir:'ltr'});if(G.jelly<cost||G.pvpT<PVP_WARM){c.fillStyle='rgba(20,10,30,.45)';rr(c,x,y,w,hh,8);c.fill();}continue;}
+    const pc=PVP_COST[type],boss=i===8,cd=G.scd[type]||0,lock=boss&&(G.pvpT<BOSS_AFTER||G.slimes.some(s=>!s.dead&&isBoss(s))),ok=!cd&&!lock&&G.pvpT>=PVP_WARM&&G.jelly>=pc[0];
     c.fillStyle=boss?'#ecd492':'#ddcaf7';rr(c,x,y,w,hh,8);c.fill();c.lineWidth=sel?3.5:1.5;c.strokeStyle=sel?'#ffc94a':'#5f2f99';c.stroke();
-    c.drawImage(SPORT[type],x+5,y+1,w-10,hh-14);txt(c,String(pc[0]),x+w/2,y+hh-7,{size:12,weight:800,col:'#3a1a5a',dir:'ltr'});
+    c.drawImage(SPORT[type],x+4,y+1,w-8,hh-15);txt(c,String(pc[0]),x+w/2,y+hh-7,{size:12,weight:800,col:'#3a1a5a',dir:'ltr'});
     if(!ok){c.fillStyle='rgba(20,10,30,.5)';rr(c,x,y,w,hh,8);c.fill();}
     if(cd>0){c.save();rr(c,x,y,w,hh,8);c.clip();c.fillStyle='rgba(10,5,18,.55)';c.fillRect(x,y,w,hh*Math.min(1,cd/pc[1]));c.restore();}}
-  const nx=666;c.fillStyle='#4a2f18';rr(c,nx,y0+3,60,h-6,8);c.fill();c.strokeStyle=G.nest<3&&G.jelly>=NEST_COST[Math.min(2,G.nest)]?'rgba(255,226,120,.85)':'rgba(255,255,255,.2)';c.lineWidth=1.5;c.stroke();
-  nestIcon(c,nx+30,y0+18,.62);txt(c,G.nest>=3?'كامل':`عش ${NEST_COST[G.nest]}`,nx+30,y0+h-12,{size:11,weight:800,col:'#f3e6d0'});
-  const rate=((4+2*G.nest)*(G.pvpT>RUSH_AT?1.5:1)).toFixed(0),bl=Math.max(0,Math.ceil(BOSS_AFTER-G.pvpT));
-  txt(c,`دخل الوحل ${rate}/ث${G.pvpT<PVP_WARM?` • الهجوم بعد ${Math.ceil(PVP_WARM-G.pvpT)}`:bl>0?` • الزعيم بعد ${Math.floor(bl/60)}:${String(bl%60).padStart(2,'0')}`:''}`,1000,y0+15,{size:14,weight:800,col:'#d9b8ff'});
-  txt(c,G.ai&&G.ctrl.slime==null?'اختر الوحش ثم اضغط على الممر • الأرقام 1-9 • ▲▼ و Enter • N العش':G.ctrl.slime!=null?`يد ${G.ctrl.slime+1}: ◀▶ الوحش • ▲▼ الممر • ✕ إنزال • △ العش`:'السلايم: ◀▶ الوحش • ▲▼ الممر • Enter إنزال • N العش',1000,y0+36,{size:13,weight:700,col:'#cdb8e8'});}
+  const nx=LB.nest,can=G.nest<NEST_MAX&&G.jelly>=NEST_COST[Math.min(NEST_MAX-1,G.nest)];c.fillStyle='#4a2f18';rr(c,nx,y0+3,LB.bw,h-6,8);c.fill();c.strokeStyle=can?'rgba(255,226,120,.85)':'rgba(255,255,255,.2)';c.lineWidth=1.5;c.stroke();
+  nestIcon(c,nx+LB.bw/2,y0+16,.55);txt(c,G.nest>=NEST_MAX?'كامل':String(NEST_COST[G.nest]),nx+LB.bw/2,y0+h-11,{size:11,weight:800,col:'#ffd76a',dir:G.nest>=NEST_MAX?'rtl':'ltr'});
+  drawBoostBtns(c,{x:LB.pow,y:y0+3,w:LB.bw,h:h-6},{x:LB.hv,y:y0+3,w:LB.bw,h:h-6},G.jelly,true);
+  const rate=jellyRate(G).toFixed(0),bl=Math.max(0,Math.ceil(BOSS_AFTER-G.pvpT));
+  txt(c,`دخل الوحل ${rate}/ث${G.pvpT<PVP_WARM?` • الهجوم بعد ${Math.ceil(PVP_WARM-G.pvpT)}`:bl>0?` • الزعيم بعد ${Math.floor(bl/60)}:${String(bl%60).padStart(2,'0')}`:''}`,1056,y0+15,{size:14,weight:800,col:'#d9b8ff'});
+  txt(c,MOB&&G.ctrl.slime==null?'اختر وحش واضغط على الممر أو على البيت':G.ai&&G.ctrl.slime==null?'اختر الوحش واضغط الممر أو البيت • 1-9 • ▲▼ Enter • N عش • P قوة • H حصاد • B بيت':G.ctrl.slime!=null?`يد ${G.ctrl.slime+1}: ◀▶ وحش • ▲▼ ممر • ✕ إنزال • △ عش • ○ قوة • □ حصاد • R2 بيت`:'السلايم: ◀▶ وحش • ▲▼ ممر • Enter إنزال • N عش • P قوة • H حصاد • B بيت',1056,y0+36,{size:12,weight:700,col:'#cdb8e8'});}
 
 
 // ================= online server: Firebase Realtime Database =================
@@ -2429,9 +2522,9 @@ async function p2pConnect(){const Peer=await p2pLoad();
 
 // ================= team choice + slime team vs computer =================
 const AI_DIFF={
-  easy:  {name:'سهل', think:2.1, dew:100,err:.45,merge:false,skills:false,dewN:3,grab:1.9,wall:false},
-  normal:{name:'عادي',think:.9,  dew:150,err:.12,merge:true, skills:true, dewN:6,grab:.7, wall:true},
-  hard:  {name:'صعب', think:.55, dew:200,err:.04,merge:true, skills:true, dewN:8,grab:.35,wall:true}};
+  easy:  {name:'سهل', think:2.1, dew:100,sky:9,err:.45,merge:false,skills:false,dewN:3,grab:1.9,wall:false},
+  normal:{name:'عادي',think:.8,  dew:175,sky:6.5,err:.12,merge:true, skills:true, dewN:6,grab:.7, wall:true},
+  hard:  {name:'صعب', think:.45, dew:250,sky:5,err:.04,merge:true, skills:true, dewN:8,grab:.35,wall:true}};
 const AI_DECK=['dew','tree','pine','frost','storm','torch','oak','bomb'];
 function openTeam(){clearCountdown();netLeave();screen='team';G=null;show('ovOnline');
   onSet('قبل ما تلعب','اختر فريقك',`<div class="teams">
@@ -2449,7 +2542,8 @@ function slimeDeckChips(cs,cb){
     b.onclick=()=>{NET.boss=id;SFX.click();for(const x of cb.children)x.setAttribute('aria-pressed',String(x===b));};cb.appendChild(b);}}
 function openVsAI(){clearCountdown();netLeave();screen='aisetup';G=null;show('ovOnline');
   const wins=save.vsai||{};let dk=AI_DIFF[save.aiDiff]?save.aiDiff:'normal';
-  onSet('فريق السلايم ضد الكمبيوتر','هاجم الحديقة',`<p class="rules">اخترق السياج 5 مرات قبل ما تخلص ${PVP_TIME/60} دقائق. الوحل يزيد مع الوقت، وكل وحش له سعر حسب قوته. الكمبيوتر يزرع ويدافع لحاله.</p>
+  onSet('فريق السلايم ضد الكمبيوتر','هاجم الحديقة',`<p class="rules">اخترق السياج 5 مرات قبل ما تخلص ${minsTxt(PVP_TIME)}. الوحل يزيد مع الوقت، وكل وحش له سعر حسب قوته. الكمبيوتر يزرع ويدافع لحاله.</p>
+    <p class="rules small">جديد: «قوة» تخلي وحوشك أقوى، و«حصاد» يضاعف الوحل 20 ثانية، والعش 5 مستويات. وعندك مربعين «بيت» يمين الساحة: اختر وحش واضغط على البيت فيطلع منه لحاله، أو اختر «بيت الوحل» يجمع لك وحل. بيت فوق بيت يرفع مستواه.</p>
     <div class="diffs" id="aiDiff" role="group" aria-label="مستوى الكمبيوتر"></div>
     <div class="pchips mini" id="aiDeck"></div><div class="pchips mini" id="aiBoss"></div>
     <p class="rules small">اختر الوحش من الشريط تحت ثم اضغط على الممر. أو الأرقام والأسهم و<span class="ltr">Enter</span> و<span class="ltr">N</span> للعش، أو يد بلايستيشن.</p>`,
@@ -2461,9 +2555,9 @@ function vsAIStart(diff){if(!NET.deck.length){SFX.deny();return;}SFX.click();sav
   NET.oppDeck=netSanitizeDeck(NET.deck,NET.boss);NET.team=null;NET.oppName='الكمبيوتر';hideAll();newPvpGame('plants');
   const D=AI_DIFF[diff]||AI_DIFF.normal,pads=getPads().map((p,i)=>p&&p.connected!==false?i:-1).filter(i=>i>=0);
   G.cards=AI_DECK.map(id=>({id,cd:PLANTS[id].cd>20?PLANTS[id].cd*.5:0,shake:0}));G.skills=['root','gust'].map(id=>({id,cd:SKILLS[id].cd*.4}));
-  Object.assign(G,{local:true,ai:{diff,D,t:1.5,grab:0},ctrl:{veg:'ai',slime:pads.length?pads[0]:null},vcur:{r:2,c:2},vci:0,ssel:0,slane:2,dew:D.dew,sel:null});
+  Object.assign(G,{local:true,ai:{diff,D,t:1.5,grab:0},ctrl:{veg:'ai',slime:pads.length?pads[0]:null},vcur:{r:2,c:2},vci:0,ssel:0,slane:2,dew:D.dew,sky:D.sky,sel:null});
   G.lvl=Object.assign({},G.lvl,{name:'ضد الكمبيوتر'});
-  banner('هاجم الحديقة!',`الكمبيوتر (${D.name}) يدافع ${PVP_TIME/60} دقائق، وأنت تحتاج 5 اختراقات`,3);screen='play';MUSIC.start(G.theme);}
+  banner('هاجم الحديقة!',`الكمبيوتر (${D.name}) يدافع ${minsTxt(PVP_TIME)}، وأنت تحتاج 5 اختراقات`,3);screen='play';MUSIC.start(G.theme);}
 // ---- computer gardener ----
 function aiPut(id,r,c){if(r<0||r>=ROWS||c<0||c>=COLS)return false;const card=G.cards.find(k=>k.id===id);if(!card||card.cd>0||G.dew<PLANTS[id].cost||G.blocked.has(r+','+c))return false;
   const ex=G.grid[r][c];if(ex&&!(ex.type===id&&canMerge(id)&&(ex.lv||1)<3))return false;
