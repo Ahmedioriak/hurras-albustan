@@ -2016,11 +2016,13 @@ const GAME_URL='https://ahmedioriak.github.io/hurras-albustan/';
 const FB_VER='10.12.2';
 const FB_LOBBY='__lobby';
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.async=true;s.onload=()=>res();s.onerror=()=>rej(Object.assign(new Error('load'),{code:'sdk/load'}));document.head.appendChild(s);});}
+// Libraries load from ./lib next to the page when it is hosted (GitHub/Vercel), otherwise from the CDN.
+function loadLib(file,cdn){return loadScript('lib/'+file).catch(()=>loadScript(cdn));}
 let fbLoading=null;
 function fbLoad(){if(!FIREBASE_CONFIG)return Promise.reject(Object.assign(new Error('no config'),{code:'noconfig'}));
   if(window.firebase&&window.firebase.database&&window.firebase.auth)return Promise.resolve(window.firebase);
   if(!fbLoading){const b=`https://www.gstatic.com/firebasejs/${FB_VER}/`;
-    fbLoading=loadScript(b+'firebase-app-compat.js').then(()=>Promise.all([loadScript(b+'firebase-auth-compat.js'),loadScript(b+'firebase-database-compat.js')])).then(()=>window.firebase);
+    fbLoading=loadLib('firebase-app-compat.js',b+'firebase-app-compat.js').then(()=>Promise.all([loadLib('firebase-auth-compat.js',b+'firebase-auth-compat.js'),loadLib('firebase-database-compat.js',b+'firebase-database-compat.js')])).then(()=>window.firebase);
     fbLoading.catch(()=>{fbLoading=null;});}
   return fbLoading;}
 function serverWake(){if(window.claude||!FIREBASE_CONFIG)return;fbLoad().catch(()=>{});}
@@ -2090,7 +2092,7 @@ const PEERJS_URL='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
 const P2P_PREFIX='hurras-albustan-v4-';
 let peerLoading=null;
 function p2pLoad(){if(window.Peer)return Promise.resolve(window.Peer);
-  if(!peerLoading){peerLoading=loadScript(PEERJS_URL).then(()=>{if(!window.Peer)throw Object.assign(new Error('peerjs'),{code:'sdk/load'});return window.Peer;});peerLoading.catch(()=>{peerLoading=null;});}
+  if(!peerLoading){peerLoading=loadLib('peerjs.min.js',PEERJS_URL).then(()=>{if(!window.Peer)throw Object.assign(new Error('peerjs'),{code:'sdk/load'});return window.Peer;});peerLoading.catch(()=>{peerLoading=null;});}
   return peerLoading;}
 function p2pUid(){if(typeof save.uid!=='string'||!/^[a-z0-9]{6,40}$/i.test(save.uid)){save.uid='u'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);persist();}return save.uid;}
 async function p2pConnect(){const Peer=await p2pLoad();

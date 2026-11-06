@@ -1,0 +1,7 @@
+Third-party libraries bundled here so online play works without a CDN:
+
+- peerjs.min.js — PeerJS 1.5.4 (https://peerjs.com), MIT License, Copyright (c) 2015 Michelle Bu and Eric Zhang.
+- firebase-app-compat.js, firebase-auth-compat.js, firebase-database-compat.js — Firebase JS SDK 10.12.2
+  (https://github.com/firebase/firebase-js-sdk), Apache License 2.0, Copyright Google LLC.
+
+If a file here fails to load, the game falls back to the same version on unpkg.com / gstatic.com.

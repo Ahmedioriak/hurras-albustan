@@ -1,76 +1,78 @@
 # حُرّاس البستان: غزو السلايم
 
-لعبة دفاع عن البستان في المتصفح، بالعربي، كلها مرسومة بالكود (بدون صور خارجية). تختار فريقك: تزرع نباتات وتصد السلايم، أو تقود السلايم وتهاجم حديقة يدافع عنها الكمبيوتر أو صاحبك.
+لعبة دفاع عن البستان في المتصفح، بالعربي، كلها مرسومة بالكود: **أونلاين 1 ضد 1 بكود غرفة** (واحد خضروات والثاني سلايم)، وطور القصة، وضد الكمبيوتر، و1 ضد 1 على نفس الجهاز بيد بلايستيشن.
 
-**العب الآن:** https://ahmedioriak.github.io/hurras-albustan/
+- **Vercel:** https://hurras-albustan.vercel.app
+- **GitHub Pages:** https://ahmedioriak.github.io/hurras-albustan/
+
+| الملف | وش هو |
+|---|---|
+| `index.html` | **اللعبة كاملة** في ملف واحد (كمبيوتر وجوال) |
+| `firebase-config.js` | إعدادات سيرفر الأونلاين (Firebase) — اختياري، الصق إعدادات مشروعك هنا |
+| `lib/` | مكتبات الأونلاين (PeerJS و Firebase) عشان ما تعتمد اللعبة على مواقع ثانية |
+| `manifest.webmanifest` / `sw.js` / `icons/` | تثبيت اللعبة كتطبيق وتشغيلها بدون إنترنت |
+| `database.rules.json` | قواعد قاعدة البيانات في Firebase |
+| `firebase.json` / `vercel.json` | إعدادات الاستضافة |
+| `src/` | ملفات المصدر مقسّمة — بعد أي تعديل: `python3 src/build.py` (يحدّث `index.html`) |
 
 ## الأطوار
 
 | الفريق | الطور | الفكرة |
 |---|---|---|
+| الاثنين | **أونلاين 1 ضد 1** | خضروات ضد سلايم بين جهازين، بكود من 4 أرقام |
+| الاثنين | 1 ضد 1 | على نفس الجهاز بيد بلايستيشن (أو الماوس ولوحة المفاتيح) |
 | الخضروات | الطور العادي | 25 مرحلة في 5 عوالم، وثلاثة زعماء |
 | الخضروات | الطور المتصاعد | مستويات بلا نهاية، قوة السلايم = 1.04^(المستوى − 1) |
 | الخضروات | طور النجاة | بلا توقف حتى تخسر، والصعوبة تزيد مع نقاطك |
 | السلايم | ضد الكمبيوتر | تهاجم حديقة يزرعها الكمبيوتر (سهل، عادي، صعب) |
-| الاثنين | أونلاين | خضروات ضد سلايم بين جهازين، بكود غرفة من 4 أرقام |
-| الاثنين | 1 ضد 1 | على نفس الجهاز بيد بلايستيشن (أو الماوس ولوحة المفاتيح) |
 
 فيها 22 نبتة، و19 نوع سلايم، ودمج النباتات لمستوى 2 و3.
 
-## اللعب أونلاين 1 ضد 1
+## اللعب أونلاين
 
-1. افتح اللعبة ← "أونلاين 1 ضد 1".
+1. افتح اللعبة ← **أونلاين 1 ضد 1**.
 2. اكتب اسمك، واختر فريقك (الخضروات أو السلايم)، فيطلع لك كود من 4 أرقام.
 3. صاحبك يفتح نفس الرابط من أي جهاز، ويضغط "أونلاين 1 ضد 1" ويكتب الكود، وياخذ الفريق الثاني.
 4. كل واحد يختار 8 (نباتات أو وحوش)، ثم "جاهز".
 
-## كيف يشتغل الاتصال
+بدون أي إعداد، الجهازين يتصلون مباشرة (WebRTC عن طريق سيرفر PeerJS المجاني). لاعب الخضروات هو اللي تشتغل عنده المباراة ويرسل حالتها 10 مرات في الثانية، ولاعب السلايم يرسل أوامر إنزال الوحوش.
 
-**بدون أي إعداد (الوضع الافتراضي): اتصال مباشر بين الجهازين (WebRTC عن طريق PeerJS).**
+## سيرفر الأونلاين (Firebase) — اختياري
 
-- اللي ينشئ الغرفة يسجّل المعرّف `hurras-albustan-v4-<الكود>` في سيرفر PeerJS المجاني، وصاحبه يتصل فيه بالكود.
-- بعدها الجهازين يتكلمون مباشرة. لاعب الخضروات هو اللي تشتغل عنده المباراة ويرسل حالتها 10 مرات في الثانية، ولاعب السلايم يرسل أوامر إنزال الوحوش.
-- ما فيه قائمة مباريات مفتوحة في هذا الوضع: الدخول بالكود بس.
+مع Firebase تظهر قائمة المباريات المفتوحة، والاتصال يمر عن طريق السيرفر:
 
-**مع Firebase (اختياري):** لو حطيت إعدادات مشروع Firebase في `FIREBASE_CONFIG`، اللعبة تستخدم Firebase Realtime Database بدل الاتصال المباشر، وتظهر قائمة المباريات المفتوحة:
+1. https://console.firebase.google.com ← **Create a project**.
+2. **Build ← Realtime Database ← Create Database** ← المكان: **Belgium (europe-west1)** ← **Start in locked mode**.
+3. تبويب **Rules**: الصق محتوى `database.rules.json` واضغط **Publish**.
+4. **Build ← Authentication ← Get started** ← فعّل **Anonymous**.
+5. ⚙️ **Project settings ← Your apps ← Web (`</>`)** ← سجّل التطبيق ← انسخ `firebaseConfig`.
+6. الصقه في `firebase-config.js` مكان `null` (تقدر تعدّله من GitHub مباشرة، وVercel ينشره تلقائياً).
 
-- كل لاعب يدخل بحساب مجهول (Anonymous Auth) تلقائياً.
-- كل لاعب يكتب عقدة وحدة في الغرفة: `rooms/<الغرفة>/<uid>_<tab>` = `{n: الاسم, p: الحالة (JSON), t: الوقت}`، وتنحذف تلقائياً لما يقفل الصفحة.
-- القواعد في `database.rules.json`: لازم تسجيل دخول، وكل لاعب يكتب في عقدته بس، وحد لحجم البيانات.
-- الخطة المجانية (Spark) تتحمل 100 اتصال في نفس الوقت.
+كل لاعب يكتب عقدة وحدة في الغرفة `rooms/<الغرفة>/<uid>_<tab>`، وتنحذف تلقائياً لما يقفل الصفحة. الخطة المجانية (Spark) تتحمل 100 اتصال في نفس الوقت.
 
-### ربط مشروع Firebase جديد
+## الاستضافة
 
-1. https://console.firebase.google.com ← Create a project.
-2. Build ← Realtime Database ← Create database ← Start in locked mode.
-3. تبويب Rules ← الصق محتوى `database.rules.json` ← Publish.
-4. Build ← Authentication ← Get started ← فعّل Anonymous.
-5. Project settings ← Your apps ← Web (`</>`) ← انسخ `firebaseConfig`.
-6. حط القيم في `FIREBASE_CONFIG` في قسم "online server" داخل `docs/game.js` (أو عرّف `window.HURRAS_FIREBASE_CONFIG` قبل تحميل اللعبة).
+- **Vercel**: Add New ← Project ← اختر هذا المستودع ← Deploy. (مربوط الحين، وكل push على `main` ينشر تلقائياً.)
+- **GitHub Pages**: Settings ← Pages ← Deploy from a branch ← `main` و`/ (root)`.
+- **Firebase Hosting** (اختياري): `npm i -g firebase-tools` ← `firebase login` ← `firebase use --add` ← `firebase deploy`.
 
-## النشر
+## تثبيت اللعبة كتطبيق
 
-- **GitHub Pages:** Settings ← Pages ← Deploy from a branch ← `main` و`/docs`.
-- **أو Firebase Hosting:** `firebase deploy` (الإعداد في `firebase.json`، وينشر القواعد كمان).
+افتح رابط اللعبة من الجوال أو الكمبيوتر:
 
-## تشغيل على جهازك
+- **أندرويد / Chrome / Edge:** القائمة ← "تثبيت التطبيق" أو "Add to Home screen".
+- **آيفون (Safari):** زر المشاركة ← "إضافة إلى الشاشة الرئيسية".
 
-افتح `docs/index.html` في المتصفح. أو شغّله من سيرفر محلي، مثلاً:
+بعد التثبيت تفتح بملء الشاشة، والطور العادي يشتغل حتى بدون إنترنت.
 
-```bash
-npx serve docs
-```
+## التحكم
 
-## هيكل المشروع
-
-```
-docs/                  اللعبة (index.html, style.css, game.js)
-database.rules.json    قواعد حماية قاعدة البيانات
-firebase.json          إعداد Firebase CLI (القواعد + الاستضافة)
-```
+- الخضروات: اختر بطاقة النبتة ثم اضغط على المربع، واجمع قطرات الندى. اختصارات: 1-8 النباتات، S الاقتلاع، Q و W المهارات، Space للإيقاف.
+- السلايم: اختر الوحش من الشريط ثم اضغط على الممر، أو الأرقام والأسهم و Enter، وحرف N للعش.
+- يد بلايستيشن (1 ضد 1 وضد الكمبيوتر): ✕ زراعة/إنزال، ○ اقتلاع، △ الجذور/العش، □ النسيم، L1/R1 والأسهم للاختيار.
 
 ---
 
 ### English
 
-*Hurras Al-Bustan: Slime Invasion* is an Arabic lane-defense browser game. Play the plants (campaign, endless ascent, survival) or the slimes (against a computer gardener), locally 1v1 with game controllers, or online 1v1 with a 4-digit room code. By default the two browsers connect directly over WebRTC (PeerJS public signaling, no setup); if `FIREBASE_CONFIG` is set, rooms run on Firebase Realtime Database with anonymous auth instead (rules in `database.rules.json`). The plants player runs the authoritative simulation. The game lives in `docs/` for GitHub Pages.
+*Hurras Al-Bustan: Slime Invasion* is an Arabic lane-defense browser game in one `index.html`. Main mode: online 1v1 with a 4-digit room code, plants vs slimes. By default the two browsers connect directly over WebRTC (PeerJS public signaling, no setup); if `firebase-config.js` holds a Firebase config, rooms run on Firebase Realtime Database with anonymous auth instead (rules in `database.rules.json`). Also: a 25-level campaign, endless ascent, survival, slimes vs a computer gardener, and local 1v1 with game controllers. Deployed on Vercel and GitHub Pages; installable as a PWA.
