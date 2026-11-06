@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>حُرّاس البستان — جوال</title>
+<meta name="description" content="حُرّاس البستان: غزو السلايم — لعبة دفاع عن البستان بالعربي. أونلاين 1 ضد 1 بكود من 4 أرقام: خضروات ضد سلايم.">
+<meta name="theme-color" content="#0b1f17">
+<link rel="manifest" href="manifest-mobile.webmanifest">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+html,body{overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+canvas{touch-action:none}
+</style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="حُرّاس البستان">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&family=Lalezar&display=swap">
+<style>
+/*STYLE*/
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="game" id="game">
+    <canvas id="cv" dir="rtl" aria-label="ساحة اللعب"></canvas>
+
+    <section class="ov ov-title" id="ovTitle">
+      <div class="title-block">
+        <p class="eyebrow">دفاع عن الحديقة • 22 نبتة • 19 نوعاً من السلايم</p>
+        <h1>حُرّاس البستان</h1>
+        <p class="sub">غزو السلايم</p>
+        <p class="lead">العب أونلاين 1 ضد 1 مع صاحبك بكود من 4 أرقام: واحد يختار فريق الخضروات ويدافع، والثاني فريق السلايم ويهاجم. أو العب لوحدك في 25 مرحلة وطور متصاعد وطور نجاة، أو قُد السلايم ضد الكمبيوتر.</p>
+        <div class="row"><button class="btn" id="bOnline1">أونلاين 1 ضد 1</button><button class="btn ghost" id="bPlay">العب لوحدك</button></div>
+        <div class="row"><button class="chip" id="bGuide">دليل الحديقة</button><button class="chip" id="bSound">الصوت: يعمل</button><button class="chip" id="bFull">ملء الشاشة</button><a class="chip" id="bMobile" href="mobile" hidden>نسخة الجوال</a></div>
+      </div>
+    </section>
+
+    <section class="ov" id="ovMap" hidden>
+      <div class="map">
+        <header class="map-head"><h2>خريطة العوالم</h2><span class="stars-total" id="starTotal"></span><button class="chip" id="bMapBack">رجوع</button></header>
+        <div class="worlds" id="worlds"></div>
+        <div class="modes"><div class="mode hot" id="ascBox"></div><div class="mode" id="endlessBox"></div><div class="mode hot" id="onlineBox"></div></div>
+      </div>
+    </section>
+
+    <section class="ov" id="ovIntro" hidden>
+      <div class="panel wide">
+        <p class="eyebrow" id="inLvl"></p>
+        <h2 id="inName"></h2>
+        <p class="formula" id="inFormula" hidden></p>
+        <div class="news" id="inNews"></div>
+        <div class="loadout" id="inLoad" hidden>
+          <p class="lo-head"><span>اختر نباتاتك لهذه المرحلة (8 كحد أقصى)</span><span id="inLoadCount"></span></p>
+          <div class="pchips" id="inChips"></div>
+        </div>
+        <p class="tip" id="inTip"></p>
+        <div class="row"><button class="btn" id="bInGo">ابدأ</button><button class="btn ghost" id="bInBack">الخريطة</button></div>
+      </div>
+    </section>
+
+    <section class="ov" id="ovPause" hidden>
+      <div class="panel">
+        <h2>استراحة</h2>
+        <div class="col">
+          <button class="btn" id="bResume">متابعة</button>
+          <button class="btn ghost" id="bRestart">إعادة المرحلة</button>
+          <button class="btn ghost" id="bQuit">الخريطة</button>
+          <button class="chip" id="bSound2">الصوت: يعمل</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="ov" id="ovEnd" hidden>
+      <div class="panel">
+        <h2 id="endTitle"></h2>
+        <div class="bigstars" id="endStars"></div>
+        <p id="endText"></p>
+        <p class="count" id="endCount" hidden></p>
+        <div class="row" id="endBtns"></div>
+      </div>
+    </section>
+
+    <section class="ov" id="ovOnline" hidden>
+      <div class="panel wide online">
+        <p class="eyebrow" id="onEyebrow">اللعب أونلاين</p>
+        <h2 id="onTitle">فريق الخضروات ضد فريق السلايم</h2>
+        <div class="onbody" id="onBody"></div>
+        <div class="row" id="onBtns"></div>
+      </div>
+    </section>
+
+    <section class="ov" id="ovGuide" hidden>
+      <div class="guide">
+        <header class="map-head">
+          <h2>دليل الحديقة</h2>
+          <div class="tabs" role="tablist"><button class="tab" id="tabP" role="tab" aria-selected="true">النباتات</button><button class="tab" id="tabS" role="tab" aria-selected="false">السلايم</button></div>
+          <button class="chip" id="bGuideBack">رجوع</button>
+        </header>
+        <div class="glist" id="glist"></div>
+      </div>
+    </section>
+  </div>
+  <p class="rotate-hint">أدر هاتفك أفقياً لتجربة أفضل.</p>
+</div>
+<script src="firebase-config.js"></script>
+<script>window.HURRAS_MOBILE=true;</script>
+<script>
+/*GAME*/
+</script>
+<script>
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
+</script>
+
+</body>
+</html>

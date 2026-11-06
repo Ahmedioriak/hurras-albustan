@@ -162,6 +162,8 @@ button:focus-visible{outline:.22cqw solid var(--dew);outline-offset:.25cqw}
 .pchip .cost{color:var(--amber);font-size:.85cqw}
 .gnote{grid-column:1/-1;margin:0;background:rgba(255,201,74,.12);border:.1cqw solid rgba(255,201,74,.45);border-radius:1cqw;padding:.6cqw 1.2cqw;color:var(--paper);font-size:1.3cqw;text-align:center}
 
+.mobile #bFull{display:none}
+a.chip{text-decoration:none;display:inline-block}
 .rotate-hint{display:none;margin:0;font-size:14px;color:var(--muted);text-align:center;direction:rtl}
 @media (orientation:portrait) and (max-width:700px){.rotate-hint{display:block}}
 @media (prefers-reduced-motion:reduce){.bigstars .star.on{animation:none}.btn{transition:none}}

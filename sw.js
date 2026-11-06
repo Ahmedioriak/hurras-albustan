@@ -1,6 +1,6 @@
 // حُرّاس البستان — تشغيل بدون إنترنت. الصفحة والإعدادات: الشبكة أولاً (عشان التحديثات توصل فوراً)، والباقي من الكاش.
-const V = 'hurras-v1';
-const CORE = ['./', './index.html', './firebase-config.js', './manifest.webmanifest',
+const V = 'hurras-v2';
+const CORE = ['./', './firebase-config.js', './manifest.webmanifest', './manifest-mobile.webmanifest',
   './icons/icon-32.png', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png',
   './icons/icon-maskable-192.png', './icons/icon-maskable-512.png', './lib/peerjs.min.js'];
 

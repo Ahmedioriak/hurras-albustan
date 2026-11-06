@@ -1,0 +1,47 @@
+{
+ "name": "حُرّاس البستان — جوال",
+ "short_name": "حُرّاس البستان",
+ "description": "لعبة دفاع عن البستان — أونلاين 1 ضد 1 بكود: خضروات ضد سلايم، وطور القصة وضد الكمبيوتر",
+ "lang": "ar",
+ "dir": "rtl",
+ "id": "./mobile",
+ "start_url": "./mobile?app=1",
+ "scope": "./",
+ "display": "fullscreen",
+ "display_override": [
+  "fullscreen",
+  "standalone"
+ ],
+ "orientation": "landscape",
+ "background_color": "#0b1f17",
+ "theme_color": "#0b1f17",
+ "categories": [
+  "games"
+ ],
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-maskable-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "icons/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

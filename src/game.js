@@ -2032,7 +2032,7 @@ async function fbConnect(){const fb=await fbLoad();
   const auth=app.auth();
   if(!auth.currentUser){await auth.signInAnonymously();}
   const uid=auth.currentUser.uid,db=app.database(),TS=fb.database.ServerValue.TIMESTAMP;
-  const S={me:uid+'_'+Math.random().toString(36).slice(2,8),by:uid,rooms:new Map(),names:new Map(),connHs:new Set(),open:false};
+  const S={me:uid+'_'+Math.random().toString(36).slice(2,8),by:'',rooms:new Map(),names:new Map(),connHs:new Set(),open:false};S.by=S.me;
   const freeze=o=>Object.freeze(o);
   const parse=s=>{try{const o=JSON.parse(s);return o&&typeof o==='object'?o:{};}catch(e){return{};}};
   function mkRoom(name){const ref=db.ref('rooms/'+name),my=ref.child(S.me);
@@ -2041,7 +2041,7 @@ async function fbConnect(){const fb=await fbLoad();
         return freeze([me,...R.members.values()]);},
       _fire(){if(R.q)return;R.q=true;setTimeout(()=>{R.q=false;const ps=R._list();for(const h of[...R.hs])try{h({peers:ps,joined:[],left:[],updated:ps});}catch(e){console.error(e);}},0);},
       _conn(){const v=R.connected();for(const h of[...R.chs])try{h(v);}catch(e){}},
-      _put(snap){const k=snap.key;if(k===S.me)return;const v=snap.val()||{};const by=k.slice(0,Math.max(0,k.lastIndexOf('_')))||k;const nm=typeof v.n==='string'?v.n.slice(0,20):'';S.names.set(by,nm);
+      _put(snap){const k=snap.key;if(k===S.me)return;const v=snap.val()||{};const by=k;const nm=typeof v.n==='string'?v.n.slice(0,20):'';S.names.set(by,nm);
         R.members.set(k,freeze({peer:k,by,name:nm,isMe:false,sameTab:false,kind:'player',guest:false,presence:freeze(parse(v.p)),updatedAt:typeof v.t==='number'?v.t:Date.now()}));R._fire();},
       async _write(){await my.onDisconnect().remove();await my.set({n:playerName().slice(0,20),p:JSON.stringify(R.pres),t:TS});},
       async _join(){await R._write();
@@ -2096,7 +2096,7 @@ function p2pLoad(){if(window.Peer)return Promise.resolve(window.Peer);
   return peerLoading;}
 function p2pUid(){if(typeof save.uid!=='string'||!/^[a-z0-9]{6,40}$/i.test(save.uid)){save.uid='u'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);persist();}return save.uid;}
 async function p2pConnect(){const Peer=await p2pLoad();
-  const S={by:p2pUid(),names:new Map(),room:null};const freeze=o=>Object.freeze(o);
+  const S={by:p2pUid()+'_'+Math.random().toString(36).slice(2,6),names:new Map(),room:null};const freeze=o=>Object.freeze(o);
   const lobby={pres:{},hs:new Set()};
   const waitOpen=(peer,ms)=>new Promise((res,rej)=>{let done=false;const t=setTimeout(()=>{if(!done){done=true;rej({code:'timeout'});}},ms);
     peer.on('open',()=>{if(!done){done=true;clearTimeout(t);res();}});
@@ -2246,6 +2246,14 @@ function aiTick(dt){const A=G.ai,D=A.D;if(G.over)return;
     if(D.merge){if(G.pvpT>90&&storms<2){for(const r of[2,1,3]){const c=aiFreeCol(r,1,5,front[r]);if(c>=0&&aiPut('storm',r,c))return;}}
       for(const r of order)if(mergeIn('pine',r))return;if(mergeIn('frost')||mergeIn('storm')||mergeIn('torch'))return;}}
   if(D.skills&&danger>4&&aiSkill('gust'))return;}
+
+// ================= phone version (mobile.html sets window.HURRAS_MOBILE) =================
+const IS_MOBILE=!!window.HURRAS_MOBILE;
+if(IS_MOBILE){document.documentElement.classList.add('mobile');
+  const goFull=()=>{const el=document.documentElement;try{if(!document.fullscreenElement&&el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});
+    if(p&&p.then)p.then(()=>{try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}).catch(()=>{});}}catch(e){}};
+  addEventListener('pointerup',goFull,{passive:true});cv.addEventListener('contextmenu',e=>e.preventDefault());}
+else{try{const mb=$('bMobile');if(mb&&/^https?:$/.test(location.protocol)&&!window.claude&&matchMedia('(pointer: coarse)').matches)mb.hidden=false;}catch(e){}}
 
 // ================= loop =================
 let last=performance.now();
